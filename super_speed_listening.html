@@ -152,6 +152,7 @@
 
     <button class="play-btn" id="btn-play"><span aria-hidden="true">🔊</span><span id="play-btn-label">問題を再生する</span></button>
     <p class="replay-note" id="replay-note">再生回数：0回</p>
+    <button class="ghost" id="btn-skip-sentence">聴き取れないので次の例文へ</button>
 
     <label for="answer-input">聴いた文章を、すべてひらがなで入力してください</label>
     <input type="text" id="answer-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -596,6 +597,7 @@
   var btnPlay = el("btn-play");
   var playBtnLabel = el("play-btn-label");
   var replayNote = el("replay-note");
+  var btnSkipSentence = el("btn-skip-sentence");
   var speedValueEl = el("speed-value");
   var levelLabelEl = el("level-label");
   var totalScoreEl = el("total-score");
@@ -678,9 +680,21 @@
 
   /* ===================== 出題ロジック ===================== */
   function refillPool(){ state.pool = shuffle(QUESTIONS.slice()); state.poolIdx = 0; }
+  var RECENT_HISTORY_SIZE = 20;
+  var recentHistory = []; // 直近に出題した文章（text）を記録し、重複を避ける
+  function rememberHistory(q){
+    recentHistory.push(q.text);
+    if (recentHistory.length > RECENT_HISTORY_SIZE) recentHistory.shift();
+  }
   function nextQuestion(){
-    if (state.poolIdx >= state.pool.length) refillPool();
-    var q = state.pool[state.poolIdx]; state.poolIdx++; return applyPoliteIfPossible(q);
+    var q, attempts = 0;
+    do {
+      if (state.poolIdx >= state.pool.length) refillPool();
+      q = state.pool[state.poolIdx]; state.poolIdx++;
+      attempts++;
+    } while (recentHistory.indexOf(q.text) !== -1 && attempts < 200);
+    rememberHistory(q);
+    return applyPoliteIfPossible(q);
   }
   // 「〜ている。」「〜でいる。」「〜ある。」で終わる文だけ、安全に「ですます」調へ変換できる。
   // 「〜た。」終わりは動詞ごとに活用が異なるため、誤った日本語を生まないようここでは対象外（普通体のまま）。
@@ -728,6 +742,8 @@
     replayNote.textContent = "この例文を聴いた回数：0回";
     playBtnLabel.textContent = "問題を再生する";
     btnPlay.disabled = false;
+    btnSkipSentence.disabled = false;
+    btnSkipSentence.textContent = (state.sentenceIdx < 2) ? "聴き取れないので次の例文へ" : "聴き取れないので終了する";
     updateSubmitEnabled();
     answerInput.focus();
   }
@@ -745,6 +761,30 @@
       btnPlay.disabled = (state.triesInSentence >= 3);
       updateSubmitEnabled();
     });
+  }
+
+  function skipSentence(){
+    if (state.locked || !state.current) return;
+    // この例文を「3回使い切った」とみなし、得点上の不公平が起きないようにする
+    var usedSoFarInLevel = state.sentenceIdx * 3; // これまでの例文ぶんの3回×回数
+    state.totalTries = Math.max(state.totalTries, usedSoFarInLevel + 3);
+    state.triesInSentence = 3;
+    if (state.sentenceIdx < 2){
+      answerInput.disabled = true; btnSubmit.disabled = true; btnPlay.disabled = true; btnSkipSentence.disabled = true;
+      feedbackEl.textContent = "例文が変わります。";
+      feedbackEl.className = "feedback wrong";
+      setTimeout(function(){
+        state.sentenceIdx++;
+        loadSentence();
+      }, 1200);
+    } else {
+      answerInput.disabled = true; btnSubmit.disabled = true; btnPlay.disabled = true; btnSkipSentence.disabled = true;
+      feedbackEl.textContent = "すべての例文を終了します。";
+      feedbackEl.className = "feedback wrong";
+      answerRevealEl.classList.remove("hidden");
+      answerRevealEl.textContent = "正解の文：" + state.current.text + "（" + state.current.reading + "）";
+      setTimeout(function(){ finishGame(); }, 1800);
+    }
   }
 
   function submitAnswer(){
@@ -953,6 +993,7 @@
   });
 
   btnPlay.addEventListener("click", playCurrent);
+  btnSkipSentence.addEventListener("click", skipSentence);
   btnSubmit.addEventListener("click", submitAnswer); // 回答ボタンのみで判定（Enterキーでは判定しない）
   answerInput.addEventListener("input", updateSubmitEnabled);
 
