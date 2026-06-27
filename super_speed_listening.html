@@ -69,6 +69,22 @@
   .seg button{flex:1;min-width:90px;background:#262e44;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 8px;font-size:14px;}
   .seg button.active{background:var(--amber);color:#1a1206;border-color:var(--amber);font-weight:700;}
 
+  /* 視覚的には今までのボタンと同じ見た目だが、本物のラジオボタンとして機能する */
+  .seg-radio{
+    position:absolute; opacity:0; width:1px; height:1px; overflow:hidden;
+  }
+  .seg-label{
+    flex:1; min-width:90px; text-align:center;
+    background:#262e44; color:var(--ink); border:1px solid var(--line); border-radius:10px;
+    padding:11px 8px; font-size:14px; cursor:pointer; margin:0;
+  }
+  .seg-radio:checked + .seg-label{
+    background:var(--amber); color:#1a1206; border-color:var(--amber); font-weight:700;
+  }
+  .seg-radio:focus-visible + .seg-label{
+    outline:3px solid #ffffff; outline-offset:2px;
+  }
+
   .feedback{min-height:24px;text-align:center;font-size:14px;margin:8px 0 4px;color:var(--ink-dim);}
   .feedback.correct{color:var(--green);font-weight:700;}
   .feedback.wrong{color:var(--red);font-weight:700;}
@@ -117,8 +133,10 @@
 
     <label id="seg-speaker-label">あなたは？</label>
     <div class="seg" id="seg-speaker" role="radiogroup" aria-labelledby="seg-speaker-label">
-      <button type="button" data-val="native" class="active" role="radio" aria-checked="true">日本語話者</button>
-      <button type="button" data-val="learner" role="radio" aria-checked="false">日本語学習者</button>
+      <input type="radio" name="speaker-type" id="speaker-native" value="native" class="seg-radio" checked>
+      <label for="speaker-native" class="seg-label">日本語話者</label>
+      <input type="radio" name="speaker-type" id="speaker-learner" value="learner" class="seg-radio">
+      <label for="speaker-learner" class="seg-label">日本語学習者</label>
     </div>
 
     <label for="country-input">出身国</label>
@@ -126,9 +144,12 @@
 
     <label id="seg-vision-label">視覚障害の有無</label>
     <div class="seg" id="seg-vision" role="radiogroup" aria-labelledby="seg-vision-label">
-      <button type="button" data-val="blind" role="radio" aria-checked="false">全盲</button>
-      <button type="button" data-val="low" role="radio" aria-checked="false">ロービジョン</button>
-      <button type="button" data-val="sighted" class="active" role="radio" aria-checked="true">晴眼者</button>
+      <input type="radio" name="vision-status" id="vision-blind" value="blind" class="seg-radio">
+      <label for="vision-blind" class="seg-label">全盲</label>
+      <input type="radio" name="vision-status" id="vision-low" value="low" class="seg-radio">
+      <label for="vision-low" class="seg-label">ロービジョン</label>
+      <input type="radio" name="vision-status" id="vision-sighted" value="sighted" class="seg-radio" checked>
+      <label for="vision-sighted" class="seg-label">晴眼者</label>
     </div>
 
     <button class="primary" id="btn-start" style="margin-top:18px;">挑戦をはじめる</button>
@@ -756,11 +777,15 @@
     replayNote.textContent = "この例文を聴いた回数：" + state.triesInSentence + "回/3回";
     playBtnLabel.textContent = "再生中…";
     btnPlay.disabled = true;
-    speak(state.current.text, state.speed, function(){
-      playBtnLabel.textContent = (state.triesInSentence < 3) ? "もう一度聴く" : "聴く権利を使い切りました";
-      btnPlay.disabled = (state.triesInSentence >= 3);
-      updateSubmitEnabled();
-    });
+    // VoiceOver等のスクリーンリーダーがボタン操作を読み上げる時間を確保し、
+    // 例文の音声と重なって聞き取れなくなるのを防ぐための短い遅延
+    setTimeout(function(){
+      speak(state.current.text, state.speed, function(){
+        playBtnLabel.textContent = (state.triesInSentence < 3) ? "もう一度聴く" : "聴く権利を使い切りました";
+        btnPlay.disabled = (state.triesInSentence >= 3);
+        updateSubmitEnabled();
+      });
+    }, 600);
   }
 
   function skipSentence(){
@@ -967,15 +992,9 @@
 
   /* ===================== プロフィール入力UI ===================== */
   function setupSeg(container, onPick){
-    container.querySelectorAll("button").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        container.querySelectorAll("button").forEach(function(b){
-          b.classList.remove("active");
-          b.setAttribute("aria-checked", "false");
-        });
-        btn.classList.add("active");
-        btn.setAttribute("aria-checked", "true");
-        onPick(btn.dataset.val);
+    container.querySelectorAll('input[type="radio"]').forEach(function(radio){
+      radio.addEventListener("change", function(){
+        if (radio.checked) onPick(radio.value);
       });
     });
   }
