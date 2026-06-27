@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語速聴チャレンジ！ — あなたの速聴スキルは、全国何位？</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%231f2638%27/%3E%3Crect%20x%3D%272%27%20y%3D%272%27%20width%3D%2760%27%20height%3D%2760%27%20rx%3D%2712%27%20fill%3D%27none%27%20stroke%3D%27%23f0a868%27%20stroke-width%3D%272%27/%3E%3Ctext%20x%3D%2732%27%20y%3D%2742%27%20font-size%3D%2724%27%20font-family%3D%27Hiragino%20Sans%2C%20sans-serif%27%20font-weight%3D%27700%27%20fill%3D%27%23f0a868%27%20text-anchor%3D%27middle%27%3E%E9%80%9F%E8%81%B4%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#161b29; --bg-soft:#1f2638; --ink:#f4f1ea; --ink-dim:#a9b0c4;
+    --amber:#f0a868; --amber-soft:#3a2f24; --green:#7fb069; --red:#d6685f; --line:#2b3349; --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(circle at 50% -10%, #222b42 0%, var(--bg) 55%, #11151f 100%);
+    color:var(--ink); font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:32px 16px 64px;
+  }
+  .wrap{width:100%;max-width:640px;}
+  header{text-align:center;margin-bottom:24px;}
+  header h1{font-size:clamp(24px,5.5vw,34px);letter-spacing:.02em;margin:0 0 6px;font-weight:800;color:var(--amber);}
+  header p{color:var(--ink-dim);font-size:14px;margin:0;}
+  .card{background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);}
+  .card + .card{margin-top:18px;}
+
+  .wave{display:flex;align-items:center;justify-content:center;gap:5px;height:60px;margin:4px 0 18px;}
+  .wave span{display:block;width:6px;border-radius:4px;background:var(--amber);animation:bar 1.1s ease-in-out infinite;}
+  .wave span:nth-child(1){animation-delay:-1.0s;height:14px;}
+  .wave span:nth-child(2){animation-delay:-0.8s;height:30px;}
+  .wave span:nth-child(3){animation-delay:-0.6s;height:46px;}
+  .wave span:nth-child(4){animation-delay:-0.4s;height:60px;}
+  .wave span:nth-child(5){animation-delay:-0.2s;height:38px;}
+  .wave span:nth-child(6){animation-delay:0s;height:52px;}
+  .wave span:nth-child(7){animation-delay:-0.5s;height:28px;}
+  @keyframes bar{0%,100%{transform:scaleY(.35);}50%{transform:scaleY(1);}}
+  .wave.idle span{animation-play-state:paused;transform:scaleY(.35);}
+
+  .speed-row{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-bottom:2px;}
+  .speed-row .big{font-size:46px;font-weight:800;color:var(--amber);line-height:1;}
+  .speed-row .unit{font-size:17px;color:var(--ink-dim);}
+  .level-label{text-align:center;color:var(--ink-dim);font-size:13px;margin-bottom:4px;}
+  .score-row{text-align:center;color:var(--ink-dim);font-size:13px;margin-bottom:16px;}
+  .score-row b{color:var(--green);font-size:16px;}
+
+  .strikes{display:flex;justify-content:center;gap:8px;margin-bottom:18px;}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--line);border:1px solid var(--ink-dim);}
+  .dot.used{background:var(--red);border-color:var(--red);}
+
+  button{font-family:inherit;cursor:pointer;border:none;}
+  .play-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:var(--amber);color:#1a1206;font-size:16px;font-weight:700;padding:15px;border-radius:14px;margin-bottom:10px;transition:filter .15s ease, transform .15s ease;}
+  .play-btn:hover{filter:brightness(1.07);}
+  .play-btn:active{transform:scale(.98);}
+  .play-btn[disabled]{opacity:.6;}
+  .replay-note{text-align:center;font-size:12px;color:var(--ink-dim);margin-bottom:16px;}
+
+  input[type="text"]{width:100%;background:#11151f;border:1px solid var(--line);color:var(--ink);font-size:17px;padding:14px 14px;border-radius:12px;margin-bottom:12px;font-family:inherit;}
+  input[type="text"]:focus{outline:2px solid var(--amber);border-color:var(--amber);}
+
+  .primary{width:100%;background:var(--amber);color:#1a1206;font-weight:700;font-size:16px;padding:14px;border-radius:12px;margin-top:4px;}
+  .primary[disabled]{opacity:.5;cursor:default;}
+  .ghost{width:100%;background:transparent;color:var(--ink-dim);border:1px solid var(--line);font-size:14px;padding:12px;border-radius:12px;margin-top:10px;}
+  .ghost:hover{color:var(--ink);border-color:var(--ink-dim);}
+  button:focus-visible{outline:3px solid #ffffff;outline-offset:2px;}
+
+  label{display:block;font-size:13px;color:var(--ink-dim);margin-bottom:6px;margin-top:14px;}
+  label:first-child{margin-top:0;}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{flex:1;min-width:90px;background:#262e44;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px 8px;font-size:14px;}
+  .seg button.active{background:var(--amber);color:#1a1206;border-color:var(--amber);font-weight:700;}
+
+  .feedback{min-height:24px;text-align:center;font-size:14px;margin:8px 0 4px;color:var(--ink-dim);}
+  .feedback.correct{color:var(--green);font-weight:700;}
+  .feedback.wrong{color:var(--red);font-weight:700;}
+  .answer-reveal{text-align:center;font-size:13px;color:var(--ink-dim);margin-top:2px;}
+
+  .result-speed{text-align:center;margin:6px 0 18px;}
+  .result-speed .num{font-size:46px;font-weight:800;color:var(--amber);}
+  .result-speed .cap{font-size:13px;color:var(--ink-dim);margin-top:4px;line-height:1.6;white-space:pre-line;}
+
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .filters select{flex:1;min-width:120px;background:#11151f;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 8px;font-size:13px;font-family:inherit;}
+
+  table.ranking{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px;}
+  table.ranking th, table.ranking td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);}
+  table.ranking th{color:var(--ink-dim);font-weight:600;font-size:11px;}
+  table.ranking tr.me{background:var(--amber-soft);}
+  table.ranking td.rank{color:var(--amber);font-weight:700;width:30px;}
+  table.ranking td.score{color:var(--green);font-weight:700;}
+  table.ranking td.vision-blind{color:var(--amber);}
+
+  .hidden{display:none !important;}
+  .hint{font-size:12px;color:var(--ink-dim);text-align:center;margin-top:12px;line-height:1.6;}
+  footer{margin-top:24px;color:var(--ink-dim);font-size:12px;text-align:center;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+  .brand-footer{
+    margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding-top:18px;border-top:1px solid var(--line);
+  }
+  .brand-footer img{width:36px;height:36px;border-radius:8px;display:block;}
+  .brand-footer .brand-text{font-size:12px;color:var(--ink-dim);}
+  .brand-footer a{color:var(--amber);text-decoration:none;}
+  .brand-footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>日本語速聴チャレンジ！</h1>
+    <p>あなたの速聴スキルは、全国何位？</p>
+  </header>
+
+  <!-- ===== スタート画面 ===== -->
+  <section id="screen-start" class="card">
+    <label for="name-input">なまえ（ランキングに表示されます）</label>
+    <input type="text" id="name-input" maxlength="20" placeholder="なまえ" autocomplete="off">
+
+    <label id="seg-speaker-label">あなたは？</label>
+    <div class="seg" id="seg-speaker" role="radiogroup" aria-labelledby="seg-speaker-label">
+      <button type="button" data-val="native" class="active" role="radio" aria-checked="true">日本語話者</button>
+      <button type="button" data-val="learner" role="radio" aria-checked="false">日本語学習者</button>
+    </div>
+
+    <label for="country-input">出身国</label>
+    <input type="text" id="country-input" maxlength="30" placeholder="例：日本" autocomplete="off">
+
+    <label id="seg-vision-label">視覚障害の有無</label>
+    <div class="seg" id="seg-vision" role="radiogroup" aria-labelledby="seg-vision-label">
+      <button type="button" data-val="blind" role="radio" aria-checked="false">全盲</button>
+      <button type="button" data-val="low" role="radio" aria-checked="false">ロービジョン</button>
+      <button type="button" data-val="sighted" class="active" role="radio" aria-checked="true">晴眼者</button>
+    </div>
+
+    <button class="primary" id="btn-start" style="margin-top:18px;">挑戦をはじめる</button>
+    <button class="ghost" id="btn-show-ranking-from-start">ランキングを見る</button>
+    <p class="hint">第1問は0.5倍速・100点。正解するごとに0.25倍速ずつ加速し、得点は+50点ずつ増えます（100→150→200…）。1つの例文は3回まで聴けて、聴くたびに得点が10%ずつ減ります。3回とも不正解だと別の例文に変わり、3つの例文（合計9回）を使い切ると終了です。回答はすべてひらがなで入力してください（句読点はあってもなくてもOK）。</p>
+    <p class="hint" id="visit-counter" style="margin-top:6px;"></p>
+  </section>
+
+  <!-- ===== ゲーム画面 ===== -->
+  <section id="screen-game" class="card hidden">
+    <div class="wave idle" id="wave" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="speed-row"><span class="big" id="speed-value">0.50</span><span class="unit">倍速</span></div>
+    <p class="level-label" id="level-label">第1問（10点満点）</p>
+    <p class="score-row">合計スコア：<b id="total-score">0</b>点</p>
+
+    <div class="strikes" id="strikes-dots" aria-hidden="true">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    </div>
+
+    <button class="play-btn" id="btn-play"><span aria-hidden="true">🔊</span><span id="play-btn-label">問題を再生する</span></button>
+    <p class="replay-note" id="replay-note">再生回数：0回</p>
+
+    <label for="answer-input">聴いた文章を、すべてひらがなで入力してください</label>
+    <input type="text" id="answer-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <button class="primary" id="btn-submit" disabled>回答する</button>
+
+    <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+    <p class="answer-reveal hidden" id="answer-reveal"></p>
+  </section>
+
+  <!-- ===== 結果画面 ===== -->
+  <section id="screen-result" class="card hidden">
+    <h2 style="text-align:center;margin-top:0;">結果発表</h2>
+    <div class="result-speed">
+      <div class="num" id="result-score-num">0点</div>
+      <div class="cap" id="result-detail"></div>
+    </div>
+    <button class="primary" id="btn-save">この結果をランキングに登録する</button>
+    <button class="ghost" id="btn-retry">もう一度挑戦する</button>
+  </section>
+
+  <!-- ===== ランキング画面 ===== -->
+  <section id="screen-ranking" class="card hidden">
+    <h2 style="text-align:center;margin-top:0;">ランキング</h2>
+    <p class="hint" id="ranking-date" style="margin-top:-6px;"></p>
+    <div class="filters">
+      <select id="filter-speaker" aria-label="話者タイプで絞り込み"><option value="">話者：すべて</option><option value="native">日本語話者</option><option value="learner">日本語学習者</option></select>
+      <select id="filter-vision" aria-label="視覚障害の有無で絞り込み"><option value="">視覚：すべて</option><option value="blind">全盲</option><option value="low">ロービジョン</option><option value="sighted">晴眼者</option></select>
+      <select id="filter-country" aria-label="出身国で絞り込み"><option value="">出身国：すべて</option></select>
+    </div>
+    <table class="ranking">
+      <thead><tr><th>順位</th><th>名前</th><th>得点</th><th>到達倍速</th><th>属性</th><th>出身国</th></tr></thead>
+      <tbody id="ranking-body"></tbody>
+    </table>
+    <p class="hint" id="ranking-empty">まだ記録がありません。最初の挑戦者になりましょう。</p>
+    <button class="ghost" id="btn-back-to-start">スタート画面に戻る</button>
+  </section>
+
+  <footer>音声読み上げ・正解音には、お使いのブラウザの音声合成機能とWeb Audioを使用しています。
+    <div class="brand-footer">
+      <img src="data:image/jpeg;base64,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" alt="四感市ロゴ">
+      <div class="brand-text">presented by 四感市</div>
+      <a href="https://x.com/FOURsenses_city" target="_blank" rel="noopener noreferrer">@FOURsenses_city</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===================================================================
+     語彙バンク
+     - 主語：人 / 動物（5分類）/ もの・出来事（4分類）
+     - 動詞：人専用・人と動物の共通・動物（共通＋5分類専用）・もの（4分類専用）
+     - 副詞：人/共通動詞のみ、グループ（雰囲気）でランダムに組み合わせる
+  =================================================================== */
+
+  // ---------- 副詞（グループ別。読点なしで動詞の直前に置く） ----------
+  var ADVERBS = {
+    CALM: [["静かに","しずかに"],["一人で","ひとりで"],["丁寧に","ていねいに"],["落ち着いて","おちついて"],["真剣に","しんけんに"]],
+    LOUD: [["大きな声で","おおきなこえで"],["元気よく","げんきよく"],["賑やかに","にぎやかに"]],
+    FAST: [["急いで","いそいで"],["慌てて","あわてて"],["素早く","すばやく"]],
+    HAPPY:[["楽しそうに","たのしそうに"],["嬉しそうに","うれしそうに"],["元気に","げんきに"],["はしゃいで","はしゃいで"]],
+    SAD:  [["悲しそうに","かなしそうに"],["寂しそうに","さびしそうに"],["うつむきながら","うつむきながら"]]
+  };
+  // 動物には人間特有の言い回し（一人で、丁寧に、真剣に）を使わない
+  var ADVERBS_ANIMAL = {
+    CALM: [["静かに","しずかに"],["のんびりと","のんびりと"]],
+    LOUD: [["大きな声で","おおきなこえで"],["元気よく","げんきよく"],["賑やかに","にぎやかに"]],
+    FAST: [["急いで","いそいで"],["慌てて","あわてて"],["素早く","すばやく"]],
+    HAPPY:[["楽しそうに","たのしそうに"],["嬉しそうに","うれしそうに"],["元気に","げんきに"]],
+    SAD:  [["悲しそうに","かなしそうに"],["寂しそうに","さびしそうに"]]
+  };
+  // もの・出来事用：変化の途中であることを表す副詞（GRADUAL専用）
+  var ADVERBS_THING_GRADUAL = [
+    ["少しずつ","すこしずつ"],["着実に","ちゃくじつに"],["急速に","きゅうそくに"],
+    ["徐々に","じょじょに"],["確実に","かくじつに"]
+  ];
+  // もの・出来事用：すでに確定・完了した出来事向けの副詞（PUNCTUAL専用）
+  var ADVERBS_THING_PUNCTUAL = [
+    ["突然","とつぜん"],["急に","きゅうに"],["ついに","ついに"],["予想外に","よそうがいに"]
+  ];
+  var ADVERB_PROBABILITY = 1.0; // 現在は常に副詞を付ける（NONE指定の動詞のみ例外）
+
+  // ---------- 主語：人 ----------
+  var SUBJECTS_HUMAN = [
+    ["先生","せんせい"],["学生","がくせい"],["医者","いしゃ"],["店員","てんいん"],["警察官","けいさつかん"],
+    ["運転手","うんてんしゅ"],["画家","がか"],["音楽家","おんがくか"],["旅人","たびびと"],["漁師","りょうし"],
+    ["農家","のうか"],["兄","あに"],["妹","いもうと"],["姉","あね"],["弟","おとうと"],
+    ["母","はは"],["父","ちち"],["友達","ともだち"],["子供","こども"],["記者","きしゃ"],
+    ["看護師","かんごし"],["料理人","りょうりにん"],["俳優","はいゆう"],["歌手","かしゅ"],["作家","さっか"],
+    ["大工","だいく"],["美容師","びようし"],["会社員","かいしゃいん"],["社長","しゃちょう"],["研究者","けんきゅうしゃ"],
+    ["登山家","とざんか"],["通訳","つうやく"],["観光客","かんこうきゃく"],["園児","えんじ"],["校長","こうちょう"],
+    ["新入社員","しんにゅうしゃいん"],["留学生","りゅうがくせい"],["近所の人","きんじょのひと"],["お年寄り","おとしより"],["赤ちゃん","あかちゃん"]
+  ];
+
+  // ---------- 主語：動物（5分類） ----------
+  var SUBJECTS_ANIMAL = {
+    LAND:    [["猫","ねこ"],["犬","いぬ"],["狐","きつね"],["狼","おおかみ"],["熊","くま"],["兎","うさぎ"],["鹿","しか"],
+              ["猿","さる"],["パンダ","ぱんだ"],["ライオン","らいおん"],["りす","りす"],["豚","ぶた"],["子犬","こいぬ"],["子猫","こねこ"]],
+    BIRD:    [["鳥","とり"],["かもめ","かもめ"],["ふくろう","ふくろう"],["ペンギン","ぺんぎん"],["こうもり","こうもり"]],
+    AQUATIC: [["鯨","くじら"],["イルカ","いるか"],["金魚","きんぎょ"]],
+    REPTILE: [["蛇","へび"],["蛙","かえる"],["亀","かめ"]],
+    HERD:    [["馬","うま"],["象","ぞう"],["羊","ひつじ"],["牛","うし"],["キリン","きりん"]]
+  };
+
+  // ---------- 主語：もの・出来事（4分類） ----------
+  var SUBJECTS_THING = {
+    TIME_POINT:     [["2028年","にせんにじゅうはちねん"],["2029年","にせんにじゅうきゅうねん"],["2031年","にせんさんじゅういちねん"],["2033年","にせんさんじゅうさんねん"],["来年","らいねん"],["締め切り","しめきり"],["出発の時刻","しゅっぱつのじこく"]],
+    TIME_RECURRING: [["桜の季節","さくらのきせつ"],["連休","れんきゅう"],["卒業式","そつぎょうしき"]],
+    EVENT:     [["会議","かいぎ"],["祭り","まつり"],["選挙","せんきょ"],["イベント","いべんと"],["工事","こうじ"],["台風","たいふう"]],
+    SITUATION: [["景気","けいき"],["物価","ぶっか"],["人口","じんこう"],["気温","きおん"],["会社の方針","かいしゃのほうしん"],["状況","じょうきょう"],["新しい法律","あたらしいほうりつ"],["新しい計画","あたらしいけいかく"],["天気","てんき"]],
+    ABSTRACT:  [["新型の機械","しんがたのきかい"],["古い建物","ふるいたてもの"],["流行","りゅうこう"],["噂","うわさ"],["問題","もんだい"],["人気","にんき"],["変化","へんか"],["時代","じだい"],["技術","ぎじゅつ"]]
+  };
+
+  // ---------- 動詞：人専用（副詞グループ付き） ----------
+  // [漢字, 読み, 副詞グループ（NEUTRALは副詞を付けない）]
+  var VERBS_HUMAN_ONLY = [
+    ["本を読んでいる","ほんをよんでいる","CALM"],
+    ["手紙を書いている","てがみをかいている","CALM"],
+    ["約束を守った","やくそくをまもった","NEUTRAL"],
+    ["問題を解いている","もんだいをといている","CALM"],
+    ["料理を作っている","りょうりをつくっている","HAPPY"],
+    ["靴を買いに行った","くつをかいにいった","NEUTRAL"],
+    ["歌っている","うたっている","LOUD"],
+    ["練習している","れんしゅうしている","NEUTRAL"],
+    ["友達と会った","ともだちとあった","HAPPY"],
+    ["夢を持っている","ゆめをもっている","NEUTRAL"],
+    ["店を開いた","みせをひらいた","NEUTRAL"],
+    ["働いている","はたらいている","NEUTRAL"],
+    ["生徒に教えている","せいとにおしえている","CALM"],
+    ["話を聞いている","はなしをきいている","CALM"],
+    ["お礼を言った","おれいをいった","NEUTRAL"],
+    ["写真を眺めている","しゃしんをながめている","CALM"],
+    ["考え込んでいる","かんがえこんでいる","CALM"],
+    ["相談している","そうだんしている","CALM"],
+    ["友人を待っている","ゆうじんをまっている","NEUTRAL"],
+    ["挨拶をした","あいさつをした","NEUTRAL"],
+    ["勉強している","べんきょうしている","CALM"],
+    ["道を尋ねた","みちをたずねた","NEUTRAL"],
+    ["仕事を始めた","しごとをはじめた","NEUTRAL"],
+    ["花を育てている","はなをそだてている","NEUTRAL"],
+    ["計画を立てている","けいかくをたてている","CALM"],
+    ["涙を流した","なみだをながした","SAD"],
+    ["思い出を語った","おもいでをかたった","SAD"],
+    ["絵本を読んでいる","えほんをよんでいる","CALM"],
+    ["意見を述べた","いけんをのべた","NEUTRAL"],
+    ["荷物を運んでいる","にもつをはこんでいる","NEUTRAL"],
+    ["酔っ払っている","よっぱらっている","LOUD"],
+    ["大騒ぎしている","おおさわぎしている","LOUD"],
+    ["遅刻している","ちこくしている","FAST"],
+    ["とぼけている","とぼけている","NEUTRAL"],
+    ["ふざけている","ふざけている","HAPPY"],
+    ["運転している","うんてんしている","NEUTRAL"]
+  ];
+
+  // ---------- 動詞：人と動物の共通（副詞グループ付き） ----------
+  var VERBS_SHARED = [
+    ["公園で遊んでいる","こうえんであそんでいる","HAPPY"],
+    ["窓から外を見ている","まどからそとをみている","CALM"],
+    ["駅まで走っている","えきまではしっている","FAST"],
+    ["海で泳いでいる","うみですいでいる","NEUTRAL"],
+    ["山に登っている","やまにのぼっている","NEUTRAL"],
+    ["電車の中で眠っている","でんしゃのなかでねむっている","CALM"],
+    ["雨の音を聞いている","あめのおとをきいている","CALM"],
+    ["夜を過ごしている","よるをすごしている","CALM"],
+    ["楽しい時間を過ごした","たのしいじかんをすごした","HAPPY"],
+    ["遠くの町へ出かけた","とおくのまちへでかけた","NEUTRAL"],
+    ["木の下で休んでいる","きのしたでやすんでいる","CALM"],
+    ["道を歩いている","みちをあるいている","NEUTRAL"],
+    ["坂を下りている","さかをおりている","FAST"],
+    ["温かい場所に隠れている","あたたかいばしょにかくれている","NEUTRAL"],
+    ["仲間に近づいている","なかまにちかづいている","NEUTRAL"],
+    ["大きな音に驚いている","おおきなおとにおどろいている","NONE"],
+    ["水を飲んでいる","みずをのんでいる","NEUTRAL"],
+    ["広い場所で跳んでいる","ひろいばしょでとんでいる","HAPPY"],
+    ["座っている","すわっている","CALM"],
+    ["毎朝同じ道を通っている","まいあさおなじみちをとおっている","NEUTRAL"],
+    ["喜んでいる","よろこんでいる","LOUD"],
+    ["悲しんでいる","かなしんでいる","CALM"],
+    ["学習している","がくしゅうしている","CALM"],
+    ["忘れている","わすれている","NEUTRAL"],
+    ["踊っている","おどっている","HAPPY"]
+  ];
+
+  // ---------- 動詞：動物共通（どの分類の動物でも自然） ----------
+  var VERBS_ANIMAL_COMMON = [
+    ["餌を食べている","えさをたべている","CALM"],
+    ["鳴いている","ないている","LOUD"],
+    ["眠っている","ねむっている","CALM"],
+    ["水を飲んでいる","みずをのんでいる","CALM"],
+    ["休んでいる","やすんでいる","CALM"],
+    ["逃げている","にげている","FAST"],
+    ["隠れている","かくれている","CALM"],
+    ["驚いている","おどろいている","NONE"],
+    ["餌を探している","えさをさがしている","CALM"],
+    ["動いている","うごいている","CALM"],
+    ["糞をしている","ふんをしている","CALM"],
+    ["じっとしている","じっとしている","CALM"]
+  ];
+
+  // ---------- 動詞：動物の分類専用 ----------
+  var VERBS_ANIMAL_GROUP = {
+    LAND: [
+      ["尻尾を振っている","しっぽをふっている","HAPPY"],
+      ["穴を掘っている","あなをほっている","CALM"],
+      ["木に登っている","きにのぼっている","FAST"],
+      ["毛づくろいをしている","けづくろいをしている","CALM"],
+      ["日向で寝ている","ひなたでねている","CALM"],
+      ["巣を作っている","すをつくっている","CALM"],
+      ["走り回っている","はしりまわっている","FAST"],
+      ["爪を研いでいる","つめをといでいる","CALM"]
+    ],
+    BIRD: [
+      ["羽を広げている","はねをひろげている","CALM"],
+      ["木の枝に止まっている","きのえだにとまっている","CALM"],
+      ["飛び立っている","とびたっている","FAST"],
+      ["巣を作っている","すをつくっている","CALM"],
+      ["渡りをしている","わたりをしている","FAST"],
+      ["空を飛んでいる","そらをとんでいる","FAST"],
+      ["羽を整えている","はねをととのえている","CALM"]
+    ],
+    AQUATIC: [
+      ["水中を泳ぎ回っている","すいちゅうをおよぎまわっている","FAST"],
+      ["深く潜っている","ふかくもぐっている","CALM"],
+      ["群れで泳いでいる","むれでおよいでいる","CALM"],
+      ["水面に浮かんでいる","すいめんにうかんでいる","CALM"],
+      ["餌を捕っている","えさをとっている","FAST"]
+    ],
+    REPTILE: [
+      ["皮を脱いでいる","かわをぬいでいる","CALM"],
+      ["冬眠している","とうみんしている","CALM"],
+      ["日向で体を温めている","ひなたでからだをあたためている","CALM"],
+      ["じっと動かない","じっとうごかない","CALM"],
+      ["舌を出している","したをだしている","FAST"]
+    ],
+    HERD: [
+      ["群れで移動している","むれでいどうしている","CALM"],
+      ["仲間を呼んでいる","なかまをよんでいる","LOUD"],
+      ["縄張りを守っている","なわばりをまもっている","CALM"],
+      ["草を食べている","くさをたべている","CALM"],
+      ["子供を守っている","こどもをまもっている","CALM"]
+    ]
+  };
+
+  // ---------- 動詞：もの・出来事の分類専用 ----------
+  var VERBS_THING = {
+    TIME_POINT: [
+      ["近づいている","ちかづいている","GRADUAL"],
+      ["延期になった","えんきになった","PUNCTUAL"],
+      ["前倒しになった","まえだおしになった","PUNCTUAL"],
+      ["早まっている","はやまっている","PUNCTUAL"],
+      ["遅れている","おくれている","NONE"],
+      ["もう目の前に来ている","もうめのまえにきている","NONE"],
+      ["目前に迫っている","もくぜんにせまっている","GRADUAL"]
+    ],
+    TIME_RECURRING: [
+      ["近づいている","ちかづいている","GRADUAL"],
+      ["もうすぐ始まる","もうすぐはじまる","NONE"],
+      ["もうすぐ終わる","もうすぐおわる","NONE"],
+      ["始まろうとしている","はじまろうとしている","GRADUAL"],
+      ["終わろうとしている","おわろうとしている","GRADUAL"],
+      ["あっという間に終わった","あっというまにおわった","NONE"],
+      ["毎年訪れる","まいねんおとずれる","NONE"],
+      ["例年より早い","れいねんよりはやい","NONE"],
+      ["長く続いている","ながくつづいている","NONE"],
+      ["目前に迫っている","もくぜんにせまっている","GRADUAL"]
+    ],
+    EVENT: [
+      ["話題になっている","わだいになっている","GRADUAL"],
+      ["中止になった","ちゅうしになった","PUNCTUAL"],
+      ["盛り上がっている","もりあがっている","GRADUAL"],
+      ["無事に終わった","むじにおわった","NONE"],
+      ["大きな注目を集めた","おおきなちゅうもくをあつめた","NONE"],
+      ["盛大に行われた","せいだいにおこなわれた","NONE"],
+      ["予定通り進んだ","よていどおりすすんだ","NONE"],
+      ["急に決まった","きゅうにきまった","NONE"],
+      ["毎年恒例になっている","まいねんこうれいになっている","NONE"],
+      ["会場が満員になった","かいじょうがまんいんになった","NONE"],
+      ["関係者を驚かせた","かんけいしゃをおどろかせた","PUNCTUAL"],
+      ["オンラインに変わった","おんらいんにかわった","PUNCTUAL"],
+      ["話題を呼んでいる","わだいをよんでいる","GRADUAL"],
+      ["注目されている","ちゅうもくされている","GRADUAL"],
+      ["規模が縮小された","きぼがしゅくしょうされた","GRADUAL"]
+    ],
+    SITUATION: [
+      ["大きく変わりつつある","おおきくかわりつつある","GRADUAL"],
+      ["上がっている","あがっている","GRADUAL"],
+      ["下がっている","さがっている","GRADUAL"],
+      ["安定している","あんていしている","NONE"],
+      ["不安定になっている","ふあんていになっている","GRADUAL"],
+      ["改善されつつある","かいぜんされつつある","GRADUAL"],
+      ["悪化している","あっかしている","GRADUAL"],
+      ["回復しつつある","かいふくしつつある","GRADUAL"],
+      ["落ち着いてきた","おちついてきた","NONE"],
+      ["緊張が高まっている","きんちょうがたかまっている","GRADUAL"],
+      ["急激に変わった","きゅうげきにかわった","NONE"],
+      ["停滞している","ていたいしている","NONE"],
+      ["見直されている","みなおされている","GRADUAL"],
+      ["検討されている","けんとうされている","GRADUAL"],
+      ["需要が増えている","じゅようがふえている","GRADUAL"]
+    ],
+    ABSTRACT: [
+      ["話題になっている","わだいになっている","GRADUAL"],
+      ["注目を集めている","ちゅうもくをあつめている","GRADUAL"],
+      ["広がっている","ひろがっている","GRADUAL"],
+      ["薄れてきている","うすれてきている","GRADUAL"],
+      ["定着しつつある","ていちゃくしつつある","GRADUAL"],
+      ["忘れられつつある","わすれられつつある","GRADUAL"],
+      ["再評価されている","さいひょうかされている","GRADUAL"],
+      ["批判されている","ひはんされている","GRADUAL"],
+      ["支持されている","しじされている","GRADUAL"],
+      ["議論されている","ぎろんされている","GRADUAL"],
+      ["浸透してきている","しんとうしてきている","GRADUAL"],
+      ["衰退しつつある","すいたいしつつある","GRADUAL"],
+      ["復活しつつある","ふっかつしつつある","GRADUAL"],
+      ["賛否が分かれている","さんぴがわかれている","NONE"],
+      ["時代とともに変わってきた","じだいとともにかわってきた","NONE"]
+    ]
+  };
+
+  /* ===================== 文章生成 ===================== */
+  function pickParticle(){ return Math.random() < 0.5 ? "は" : "が"; }
+
+  // 「人と動物の共通動詞」のうち、陸上・人の生活圏を前提にしたもの（水中の動物には使わない）
+  var SHARED_LAND_ONLY = [
+    "公園で遊んでいる","窓から外を見ている","駅まで走っている","山に登っている","道を歩いている",
+    "坂を下りている","毎朝同じ道を通っている","木の下で休んでいる","電車の中で眠っている","遠くの町へ出かけた"
+  ];
+  function sharedVerbsFor(groupKey){
+    if (groupKey === "AQUATIC" || groupKey === "BIRD" || groupKey === "REPTILE"){
+      return VERBS_SHARED.filter(function(v){ return SHARED_LAND_ONLY.indexOf(v[0]) === -1; });
+    }
+    return VERBS_SHARED;
+  }
+
+  function pickAdverbFor(group, isAnimal){
+    if (group === "NONE") return null; // 副詞をつけると不自然な動詞用の例外
+    var bank = isAnimal ? ADVERBS_ANIMAL : ADVERBS;
+    var g = (!group || group === "NEUTRAL") ? "CALM" : group;
+    var pool = bank[g];
+    if (!pool || !pool.length) pool = bank.CALM;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  // 副詞付き動詞（人専用・共通動詞）から1文を作る
+  function makeSentenceWithAdverbVerb(subject, verbEntry, isAnimal){
+    var particle = pickParticle();
+    var adv = pickAdverbFor(verbEntry[2], isAnimal);
+    var advText = adv ? adv[0] : "";
+    var advReading = adv ? adv[1] : "";
+    return {
+      text: subject[0] + particle + "、" + advText + verbEntry[0] + "。",
+      reading: subject[1] + particle + "、" + advReading + verbEntry[1] + "。"
+    };
+  }
+  // 副詞付きの完成済み動詞句（もの専用）から1文を作る。もの・出来事は「が」に固定。
+  // GRADUAL: 変化の途中を表す副詞／PUNCTUAL: 確定済みの出来事向けの副詞／NONE: 副詞なし
+  function makeSentenceThing(subject, verbEntry){
+    var tag = verbEntry[2];
+    var adv = null;
+    if (tag === "GRADUAL") adv = ADVERBS_THING_GRADUAL[Math.floor(Math.random()*ADVERBS_THING_GRADUAL.length)];
+    else if (tag === "PUNCTUAL") adv = ADVERBS_THING_PUNCTUAL[Math.floor(Math.random()*ADVERBS_THING_PUNCTUAL.length)];
+    var advText = adv ? adv[0] : "";
+    var advReading = adv ? adv[1] : "";
+    return {
+      text: subject[0] + "が、" + advText + verbEntry[0] + "。",
+      reading: subject[1] + "が、" + advReading + verbEntry[1] + "。"
+    };
+  }
+
+  function shuffle(arr){
+    for (var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    return arr;
+  }
+  function sampleN(arr, n){
+    var copy = arr.slice(); shuffle(copy);
+    return copy.slice(0, Math.min(n, copy.length));
+  }
+  // 動詞プールの大きさに比例して、出題ストックに入れる文の数を決める
+  function countFor(poolSize){
+    return Math.max(3, Math.min(14, Math.round(poolSize * 0.18)));
+  }
+
+  function buildQuestionStock(){
+    var stock = [];
+
+    // 人：人専用＋共通 動詞プールから、動詞数に比例した数を割り当て
+    var humanVerbPool = VERBS_HUMAN_ONLY.concat(VERBS_SHARED);
+    SUBJECTS_HUMAN.forEach(function(s){
+      var n = countFor(humanVerbPool.length);
+      sampleN(humanVerbPool, n).forEach(function(v){
+        stock.push(makeSentenceWithAdverbVerb(s, v));
+      });
+    });
+
+    // 動物：分類専用＋共通＋人と動物の共通動詞（すべて副詞付き）
+    Object.keys(SUBJECTS_ANIMAL).forEach(function(groupKey){
+      var groupVerbs = VERBS_ANIMAL_GROUP[groupKey].concat(VERBS_ANIMAL_COMMON);
+      var poolSize = groupVerbs.length + VERBS_SHARED.length;
+      var n = countFor(poolSize);
+      SUBJECTS_ANIMAL[groupKey].forEach(function(s){
+        var picks = sampleN(groupVerbs, Math.ceil(n*0.6));
+        picks.forEach(function(v){ stock.push(makeSentenceWithAdverbVerb(s, v, true)); });
+        var sharedPicks = sampleN(sharedVerbsFor(groupKey), Math.floor(n*0.4));
+        sharedPicks.forEach(function(v){ stock.push(makeSentenceWithAdverbVerb(s, v, true)); });
+      });
+    });
+
+    // もの・出来事：分類専用動詞のみ。助詞は「が」に固定
+    Object.keys(SUBJECTS_THING).forEach(function(groupKey){
+      var verbs = VERBS_THING[groupKey];
+      var n = countFor(verbs.length);
+      SUBJECTS_THING[groupKey].forEach(function(s){
+        sampleN(verbs, n).forEach(function(v){ stock.push(makeSentenceThing(s, v)); });
+      });
+    });
+
+    return stock;
+  }
+  var QUESTIONS = buildQuestionStock();
+
+  /* ===================== 状態 ===================== */
+  var profile = { name:"なまえ", speaker:"native", country:"", vision:"sighted" };
+  var state = {
+    speed:0.5, levelIndex:1, sentenceIdx:0, sentenceSet:[], triesInSentence:0, totalTries:0,
+    totalScore:0, pool:[], poolIdx:0, current:null, locked:false, voice:null
+  };
+
+  /* ===================== 要素 ===================== */
+  function el(id){ return document.getElementById(id); }
+  var screens = { start:el("screen-start"), game:el("screen-game"), result:el("screen-result"), ranking:el("screen-ranking") };
+  function showScreen(name){ Object.keys(screens).forEach(function(k){ screens[k].classList.toggle("hidden", k!==name); }); }
+
+  var nameInput = el("name-input");
+  var countryInput = el("country-input");
+  var segSpeaker = el("seg-speaker");
+  var segVision = el("seg-vision");
+  var btnStart = el("btn-start");
+  var btnShowRankingFromStart = el("btn-show-ranking-from-start");
+  var btnBackToStart = el("btn-back-to-start");
+  var btnPlay = el("btn-play");
+  var playBtnLabel = el("play-btn-label");
+  var replayNote = el("replay-note");
+  var speedValueEl = el("speed-value");
+  var levelLabelEl = el("level-label");
+  var totalScoreEl = el("total-score");
+  var strikesDots = el("strikes-dots").querySelectorAll(".dot");
+  var answerInput = el("answer-input");
+  var btnSubmit = el("btn-submit");
+  var feedbackEl = el("feedback");
+  var answerRevealEl = el("answer-reveal");
+  var waveEl = el("wave");
+  var resultScoreNum = el("result-score-num");
+  var resultDetail = el("result-detail");
+  var btnSave = el("btn-save");
+  var btnRetry = el("btn-retry");
+  var rankingBody = el("ranking-body");
+  var rankingEmpty = el("ranking-empty");
+  var filterSpeaker = el("filter-speaker");
+  var filterVision = el("filter-vision");
+  var filterCountry = el("filter-country");
+  var rankingCache = [];
+
+  /* ===================== 音声合成 ===================== */
+  function pickVoice(){
+    var voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    var ja = voices.filter(function(v){ return /ja/i.test(v.lang); });
+    state.voice = ja[0] || voices[0] || null;
+  }
+  if ("speechSynthesis" in window){ pickVoice(); window.speechSynthesis.onvoiceschanged = pickVoice; }
+
+  function speak(text, rate, onend){
+    if (!("speechSynthesis" in window)){ if (onend) onend(); return; }
+    window.speechSynthesis.cancel();
+    var utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    if (state.voice) utter.voice = state.voice;
+    utter.rate = Math.min(rate, 10);
+    utter.onstart = function(){ waveEl.classList.remove("idle"); };
+    utter.onend = function(){ waveEl.classList.add("idle"); if (onend) onend(); };
+    utter.onerror = function(){ waveEl.classList.add("idle"); if (onend) onend(); };
+    window.speechSynthesis.speak(utter);
+  }
+
+  /* ===================== サウンド ===================== */
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var actx = AudioCtx ? new AudioCtx() : null;
+  function tone(freq, start, dur, gainVal){
+    if (!actx) return;
+    var osc = actx.createOscillator();
+    var gain = actx.createGain();
+    osc.type = "sine"; osc.frequency.value = freq; gain.gain.value = 0;
+    osc.connect(gain); gain.connect(actx.destination);
+    var t0 = actx.currentTime + start;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(gainVal, t0 + 0.02);
+    gain.gain.linearRampToValueAtTime(0, t0 + dur);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }
+  function playCorrectChime(){
+    if (actx && actx.state === "suspended") actx.resume();
+    tone(880, 0, 0.18, 0.18); tone(1320, 0.14, 0.22, 0.16);
+  }
+  function playWrongBuzz(){
+    if (actx && actx.state === "suspended") actx.resume();
+    tone(220, 0, 0.22, 0.14);
+  }
+
+  /* ===================== 判定（ひらがな限定・句読点無視） ===================== */
+  function kataToHira(str){
+    return str.replace(/[\u30a1-\u30f6]/g, function(ch){ return String.fromCharCode(ch.charCodeAt(0) - 0x60); });
+  }
+  function normalize(str){
+    return kataToHira(str || "")
+      .replace(/[。、,.!?！？\s　・「」『』]/g, "")
+      .trim();
+  }
+  function checkAnswer(input, q){
+    var n = normalize(input);
+    if (!n) return false;
+    return n === normalize(q.reading);
+  }
+
+  /* ===================== 出題ロジック ===================== */
+  function refillPool(){ state.pool = shuffle(QUESTIONS.slice()); state.poolIdx = 0; }
+  function nextQuestion(){
+    if (state.poolIdx >= state.pool.length) refillPool();
+    var q = state.pool[state.poolIdx]; state.poolIdx++; return applyPoliteIfPossible(q);
+  }
+  // 「〜ている。」「〜でいる。」「〜ある。」で終わる文だけ、安全に「ですます」調へ変換できる。
+  // 「〜た。」終わりは動詞ごとに活用が異なるため、誤った日本語を生まないようここでは対象外（普通体のまま）。
+  function applyPoliteIfPossible(sentence){
+    if (Math.random() < 0.5) return sentence; // 半分は普通体のまま
+    var t = sentence.text, r = sentence.reading;
+    if (/いる。$/.test(t)){
+      t = t.replace(/いる。$/, "います。"); r = r.replace(/いる。$/, "います。");
+    } else if (/ある。$/.test(t)){
+      t = t.replace(/ある。$/, "あります。"); r = r.replace(/ある。$/, "あります。");
+    } else {
+      return sentence; // 安全に変換できない場合はそのまま
+    }
+    return { text:t, reading:r };
+  }
+  function baseScoreFor(levelIndex){ return 100 + 50 * (levelIndex - 1); }
+  function renderStrikes(){
+    strikesDots.forEach(function(dot,i){ dot.classList.toggle("used", i < state.triesInSentence); });
+  }
+  function updateSubmitEnabled(){
+    btnSubmit.disabled = state.locked || state.triesInSentence === 0 || !answerInput.value.trim();
+  }
+
+  // レベル開始：このレベル用に例文を3つ用意する（1つ目から順に使う）
+  function startQuestion(){
+    state.totalTries = 0;
+    state.sentenceIdx = 0;
+    state.sentenceSet = [ nextQuestion(), nextQuestion(), nextQuestion() ];
+    loadSentence();
+  }
+
+  // 例文の切り替え（最初の例文も、2つ目・3つ目への切り替えも、ここを通る）
+  function loadSentence(){
+    state.triesInSentence = 0;
+    state.locked = false;
+    state.current = state.sentenceSet[state.sentenceIdx];
+    feedbackEl.textContent = ""; feedbackEl.className = "feedback";
+    answerRevealEl.classList.add("hidden"); answerRevealEl.textContent = "";
+    answerInput.value = ""; answerInput.disabled = false;
+    speedValueEl.textContent = state.speed.toFixed(2);
+    var base = baseScoreFor(state.levelIndex);
+    levelLabelEl.textContent = "第" + state.levelIndex + "問（満点" + base + "点）／例文" + (state.sentenceIdx+1) + "/3";
+    totalScoreEl.textContent = state.totalScore;
+    renderStrikes();
+    replayNote.textContent = "この例文を聴いた回数：0回";
+    playBtnLabel.textContent = "問題を再生する";
+    btnPlay.disabled = false;
+    updateSubmitEnabled();
+    answerInput.focus();
+  }
+
+  function playCurrent(){
+    if (!state.current || state.triesInSentence >= 3) return;
+    state.triesInSentence++;
+    state.totalTries++;
+    renderStrikes();
+    replayNote.textContent = "この例文を聴いた回数：" + state.triesInSentence + "回/3回";
+    playBtnLabel.textContent = "再生中…";
+    btnPlay.disabled = true;
+    speak(state.current.text, state.speed, function(){
+      playBtnLabel.textContent = (state.triesInSentence < 3) ? "もう一度聴く" : "聴く権利を使い切りました";
+      btnPlay.disabled = (state.triesInSentence >= 3);
+      updateSubmitEnabled();
+    });
+  }
+
+  function submitAnswer(){
+    if (btnSubmit.disabled || !state.current) return;
+    var correct = checkAnswer(answerInput.value, state.current);
+    if (correct){
+      state.locked = true;
+      answerInput.disabled = true; btnSubmit.disabled = true; btnPlay.disabled = true;
+      var base = baseScoreFor(state.levelIndex);
+      var multiplier = Math.pow(0.9, state.totalTries - 1); // 1回目=100%、聴くたびに10%ずつ減少
+      var gained = Math.max(1, Math.round(base * multiplier));
+      state.totalScore += gained;
+      playCorrectChime();
+      feedbackEl.textContent = "リンゴーン、正解です！ +" + gained + "点（合計" + state.totalScore + "点）";
+      feedbackEl.className = "feedback correct";
+      setTimeout(function(){
+        state.speed = Math.round((state.speed + 0.25) * 100) / 100;
+        state.levelIndex++;
+        startQuestion();
+      }, 1600);
+    } else {
+      playWrongBuzz();
+      if (state.triesInSentence < 3){
+        var remaining = 3 - state.triesInSentence;
+        feedbackEl.textContent = "正解と一致しません。この例文はあと" + remaining + "回聴けます。";
+        feedbackEl.className = "feedback wrong";
+        answerInput.value = ""; updateSubmitEnabled(); answerInput.focus();
+      } else if (state.sentenceIdx < 2){
+        // この例文の3回を使い切った → 次の例文へ切り替え
+        answerInput.disabled = true; btnSubmit.disabled = true;
+        feedbackEl.textContent = "不正解。例文が変わります。";
+        feedbackEl.className = "feedback wrong";
+        setTimeout(function(){
+          state.sentenceIdx++;
+          loadSentence();
+        }, 1800);
+      } else {
+        // 3つ目の例文も使い切った → 終了
+        feedbackEl.textContent = "不正解。すべての例文（9回）を使い切ったため終了です。";
+        feedbackEl.className = "feedback wrong";
+        answerRevealEl.classList.remove("hidden");
+        answerRevealEl.textContent = "正解の文：" + state.current.text + "（" + state.current.reading + "）";
+        answerInput.disabled = true; btnSubmit.disabled = true;
+        setTimeout(function(){ finishGame(); }, 2200);
+      }
+    }
+  }
+
+  function finishGame(){
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    resultScoreNum.textContent = state.totalScore + "点";
+    resultDetail.textContent =
+      "到達速度：" + state.speed.toFixed(2) + "倍速（第" + state.levelIndex + "問で終了）\n" +
+      "クリア問題数：" + (state.levelIndex - 1) + "問";
+    showScreen("result");
+  }
+
+  /* ===================== 端末ID（ブラウザごとのID） ===================== */
+  // localStorageに一度だけランダムIDを発行し、以後はそのIDを使い続ける。
+  // 同じブラウザで何度プレイしても、ランキング上は「自己ベストの更新」として扱われる。
+  function getBrowserId(){
+    var KEY = "jspeed_browser_id";
+    var id = null;
+    try { id = localStorage.getItem(KEY); } catch(e){}
+    if (!id){
+      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : ("id-" + Date.now() + "-" + Math.random().toString(16).slice(2));
+      try { localStorage.setItem(KEY, id); } catch(e){}
+    }
+    return id;
+  }
+  var browserId = getBrowserId();
+
+  /* ===================== ランキング（Firebase Realtime Database） =====================
+     ここにFirebase Realtime DatabaseのURLを設定してください。
+     例："https://your-project-id-default-rtdb.asia-southeast1.firebasedatabase.app"
+     （末尾のスラッシュは不要） */
+  var FIREBASE_DB_URL = "https://super-speed-listening-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+  function dbUrl(path){ return FIREBASE_DB_URL + path + ".json"; }
+
+  function saveResult(){
+    var entry = {
+      name: profile.name, speaker: profile.speaker, country: profile.country || "未回答",
+      vision: profile.vision, score: state.totalScore, speed: parseFloat(state.speed.toFixed(2)),
+      level: state.levelIndex, date: new Date().toISOString().slice(0,10), browserId: browserId
+    };
+    btnSave.disabled = true; btnSave.textContent = "登録中…";
+
+    // 同じ端末IDの既存レコードを確認し、自己ベストより低ければ上書きしない
+    fetch(dbUrl("/rankings/" + browserId))
+      .then(function(res){ return res.ok ? res.json() : null; })
+      .then(function(existing){
+        if (existing && typeof existing.score === "number" && existing.score >= entry.score){
+          return Promise.resolve(); // 自己ベスト未達なら保存しない
+        }
+        return fetch(dbUrl("/rankings/" + browserId), {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entry)
+        });
+      })
+      .then(function(){
+        btnSave.textContent = "登録しました";
+        loadRanking().then(function(){ showScreen("ranking"); });
+      })
+      .catch(function(){
+        btnSave.disabled = false; btnSave.textContent = "もう一度試す（保存に失敗しました）";
+      });
+  }
+
+  function loadRanking(){
+    return fetch(dbUrl("/rankings"))
+      .then(function(res){ return res.ok ? res.json() : {}; })
+      .then(function(data){
+        var entries = data ? Object.keys(data).map(function(k){ return data[k]; }) : [];
+        rankingCache = entries.filter(function(e){
+          return e
+            && typeof e.score === "number" && !isNaN(e.score)
+            && typeof e.speed === "number" && !isNaN(e.speed)
+            && typeof e.name === "string" && e.name.length > 0
+            && (e.speaker === "native" || e.speaker === "learner")
+            && (e.vision === "blind" || e.vision === "low" || e.vision === "sighted");
+        });
+        rankingCache.sort(function(a,b){ return b.score - a.score; });
+        populateCountryFilter();
+        renderRanking();
+        var now = new Date();
+        var stamp = now.getFullYear() + "/" + String(now.getMonth()+1).padStart(2,"0") + "/" + String(now.getDate()).padStart(2,"0")
+          + " " + String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
+        el("ranking-date").textContent = "集計日時：" + stamp + "時点";
+      }).catch(function(){
+        rankingCache = []; renderRanking();
+        el("ranking-date").textContent = "ランキングの読み込みに失敗しました（データベースの設定をご確認ください）";
+      });
+  }
+
+  function populateCountryFilter(){
+    var countries = Array.from(new Set(rankingCache.map(function(e){ return e.country; }))).sort();
+    filterCountry.innerHTML = '<option value="">出身国：すべて</option>';
+    countries.forEach(function(c){
+      var opt = document.createElement("option"); opt.value = c; opt.textContent = c;
+      filterCountry.appendChild(opt);
+    });
+  }
+
+  var SPEAKER_LABEL = { native:"日本語話者", learner:"日本語学習者" };
+  var VISION_LABEL = { blind:"全盲", low:"ロービジョン", sighted:"晴眼者" };
+
+  var shareMode = false;
+
+  function renderRanking(){
+    var sp = filterSpeaker.value, vi = filterVision.value, co = filterCountry.value;
+    var maxRows = shareMode ? 5 : 30;
+    var list = rankingCache.filter(function(e){
+      if (sp && e.speaker !== sp) return false;
+      if (vi && e.vision !== vi) return false;
+      if (co && e.country !== co) return false;
+      return true;
+    }).slice(0, maxRows);
+
+    rankingBody.innerHTML = "";
+    if (!list.length){ rankingEmpty.classList.remove("hidden"); return; }
+    rankingEmpty.classList.add("hidden");
+    list.forEach(function(e, i){
+      var tr = document.createElement("tr");
+      if (e.name === profile.name && e.score === state.totalScore) tr.classList.add("me");
+      var rankTd = document.createElement("td"); rankTd.className = "rank"; rankTd.textContent = (i+1)+"位";
+      var nameTd = document.createElement("td"); nameTd.textContent = e.name;
+      var scoreTd = document.createElement("td"); scoreTd.className = "score"; scoreTd.textContent = e.score + "点";
+      var speedTd = document.createElement("td"); speedTd.textContent = (e.speed!=null ? e.speed.toFixed(2) : "—") + "倍速";
+      var attrTd = document.createElement("td");
+      attrTd.textContent = (SPEAKER_LABEL[e.speaker]||e.speaker) + " / " + (VISION_LABEL[e.vision]||e.vision);
+      if (e.vision === "blind" || e.vision === "low") attrTd.classList.add("vision-blind");
+      var countryTd = document.createElement("td"); countryTd.textContent = e.country;
+      tr.appendChild(rankTd); tr.appendChild(nameTd); tr.appendChild(scoreTd); tr.appendChild(speedTd); tr.appendChild(attrTd); tr.appendChild(countryTd);
+      rankingBody.appendChild(tr);
+    });
+  }
+
+  /* ===================== プロフィール入力UI ===================== */
+  function setupSeg(container, onPick){
+    container.querySelectorAll("button").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        container.querySelectorAll("button").forEach(function(b){
+          b.classList.remove("active");
+          b.setAttribute("aria-checked", "false");
+        });
+        btn.classList.add("active");
+        btn.setAttribute("aria-checked", "true");
+        onPick(btn.dataset.val);
+      });
+    });
+  }
+  setupSeg(segSpeaker, function(v){ profile.speaker = v; });
+  setupSeg(segVision, function(v){ profile.vision = v; });
+
+  /* ===================== イベント ===================== */
+  btnStart.addEventListener("click", function(){
+    profile.name = nameInput.value.trim() || "なまえ";
+    profile.country = countryInput.value.trim() || "未回答";
+    state.speed = 0.5; state.levelIndex = 1; state.totalScore = 0;
+    refillPool();
+    showScreen("game");
+    startQuestion();
+  });
+
+  btnPlay.addEventListener("click", playCurrent);
+  btnSubmit.addEventListener("click", submitAnswer); // 回答ボタンのみで判定（Enterキーでは判定しない）
+  answerInput.addEventListener("input", updateSubmitEnabled);
+
+  btnSave.addEventListener("click", saveResult);
+  btnRetry.addEventListener("click", function(){
+    btnSave.disabled = false; btnSave.textContent = "この結果をランキングに登録する";
+    showScreen("start");
+  });
+  function tryUpdateAddressBar(hash){
+    try {
+      if (window.history && window.history.pushState){
+        window.history.pushState(null, "", hash);
+      } else {
+        window.location.hash = hash;
+      }
+    } catch (e) { /* サンドボックス環境などで失敗しても無視する */ }
+  }
+
+  btnShowRankingFromStart.addEventListener("click", function(){
+    loadRanking().then(function(){
+      showScreen("ranking");
+      tryUpdateAddressBar("#ranking");
+    });
+  });
+  btnBackToStart.addEventListener("click", function(){ showScreen("start"); });
+
+  [filterSpeaker, filterVision, filterCountry].forEach(function(s){ s.addEventListener("change", renderRanking); });
+
+  // ランキング専用URL（例：?ranking=1 または #ranking）でアクセスすると、
+  // 最初からランキング画面（上位5位のみ）を表示する（SNS等への共有用）
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var isShare = params.get("ranking") === "1" || window.location.hash === "#ranking";
+    if (isShare){
+      shareMode = true;
+      document.body.classList.add("ranking-share-mode");
+      btnBackToStart.classList.add("hidden");
+      loadRanking().then(function(){ showScreen("ranking"); });
+    }
+  })();
+
+  // 簡易アクセスカウンター（ページが開かれた回数のおおよその目安。重複アクセスも1回として加算される）
+  (function(){
+    fetch(dbUrl("/visitCount"))
+      .then(function(res){ return res.ok ? res.json() : 0; })
+      .then(function(count){
+        var next = (typeof count === "number" ? count : 0) + 1;
+        return fetch(dbUrl("/visitCount"), {
+          method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next)
+        }).then(function(){ return next; });
+      }).then(function(next){
+        var el2 = document.getElementById("visit-counter");
+        if (el2) el2.textContent = "これまでのアクセス数（目安）：" + next + "回";
+      }).catch(function(){ /* 失敗しても無視 */ });
+  })();
+
+})();
+</script>
+</body>
+</html>
