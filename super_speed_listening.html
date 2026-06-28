@@ -1135,11 +1135,18 @@
       });
   }
 
+  function stageProgressNote(){
+    if (state.stage === "post") return "（高難易度）";
+    if (state.stage === "final") return "（最終問題）";
+    return "";
+  }
+
   function finishGame(){
     window.speechSynthesis && window.speechSynthesis.cancel();
     resultScoreNum.textContent = state.totalScore + "点";
+    var note = stageProgressNote();
     resultDetail.textContent =
-      state.speed.toFixed(2) + "倍速（第" + state.levelIndex + "問で終了）\n" +
+      state.speed.toFixed(2) + "倍速（第" + state.levelIndex + "問で終了）" + (note ? "\n" + note : "") + "\n" +
       "クリア問題数：" + (state.levelIndex - 1) + "問";
     el("result-title").textContent = "称号：" + titleFor(state.speed, state.stage, false);
     showScreen("result");
@@ -1152,6 +1159,7 @@
     resultDetail.textContent =
       "クリアです、おめでとうございます！\n" +
       state.speed.toFixed(2) + "倍速\n" +
+      "（オールクリア！）\n" +
       "クリア問題数：" + (state.levelIndex - 1) + "問";
     el("result-title").textContent = "称号：" + titleFor(state.speed, state.stage, true);
     showScreen("result");
