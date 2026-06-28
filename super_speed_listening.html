@@ -157,6 +157,7 @@
       <label for="vision-sighted" class="seg-label">晴眼者</label>
     </div>
 
+    <p class="feedback wrong" id="start-error" style="display:none;"></p>
     <button class="primary" id="btn-start" style="margin-top:18px;">挑戦をはじめる</button>
     <button class="ghost" id="btn-show-ranking-from-start">ランキングを見る</button>
     <p class="hint">第1問は0.5倍速・100点。正解するごとに0.25倍速ずつ加速し、得点は+50点ずつ増えます（100→150→200…）。1つの例文は3回まで聴けて、聴くたびに得点が10%ずつ減ります。3回とも不正解だと別の例文に変わり、3つの例文（合計9回）を使い切ると終了です。回答はすべてひらがなで入力してください（句読点はあってもなくてもOK）。</p>
@@ -195,6 +196,7 @@
       <div class="num" id="result-score-num">0点</div>
       <div class="cap" id="result-detail"></div>
       <div class="title-badge" id="result-title"></div>
+      <p class="cap" id="result-percentile" style="margin-top:8px;"></p>
     </div>
     <button class="primary" id="btn-save">この結果をランキングに登録する</button>
     <button class="ghost" id="btn-retry">もう一度挑戦する</button>
@@ -208,6 +210,7 @@
       <select id="filter-speaker" aria-label="話者タイプで絞り込み"><option value="">話者：すべて</option><option value="native">日本語話者</option><option value="learner">日本語学習者</option></select>
       <select id="filter-vision" aria-label="視覚障害の有無で絞り込み"><option value="">視覚：すべて</option><option value="blind">全盲</option><option value="low">ロービジョン</option><option value="sighted">晴眼者</option></select>
       <select id="filter-country" aria-label="出身国で絞り込み"><option value="">出身国：すべて</option></select>
+      <select id="filter-residence" aria-label="日本在住かどうかで絞り込み"><option value="">在住地：すべて</option><option value="japan">日本</option><option value="abroad">日本以外</option></select>
     </div>
     <table class="ranking">
       <thead><tr><th>順位</th><th>名前</th><th>得点</th><th>到達倍速</th><th>属性</th><th>出身国</th></tr></thead>
@@ -790,6 +793,7 @@
   var filterSpeaker = el("filter-speaker");
   var filterVision = el("filter-vision");
   var filterCountry = el("filter-country");
+  var filterResidence = el("filter-residence");
   var rankingCache = [];
 
   /* ===================== 音声合成 ===================== */
@@ -1083,30 +1087,51 @@
 
   // 到達倍速に応じた称号（ふざけ気味のネーミング）
   var TITLE_TIERS = [
-    { max: 1.00, name: "新米リスナー" },
-    { max: 2.00, name: "ふつうの耳" },
-    { max: 3.50, name: "鋭耳（えいじ）" },
-    { max: 5.50, name: "速聴見習い" },
-    { max: 8.00, name: "速聴の達人" },
-    { max: 12.00, name: "人間離れした耳" },
-    { max: 18.00, name: "視覚障害者レベルの耳" },
-    { max: Infinity, name: "速聴の王" }
+    { max: 1.00, name: "ばぶばぶ" },
+    { max: 2.00, name: "呪い耳" },
+    { max: 3.50, name: "一般人" },
+    { max: 5.50, name: "速聴初級" },
+    { max: 8.00, name: "音速耳" },
+    { max: Infinity, name: "視覚障害プロ" }
   ];
-  function titleFor(speed){
+  function titleFor(speed, stage, cleared){
+    if (cleared) return "転生聖徳太子";
+    if (stage === "post" || stage === "final") return "地獄耳";
     for (var i = 0; i < TITLE_TIERS.length; i++){
       if (speed <= TITLE_TIERS[i].max) return TITLE_TIERS[i].name;
     }
     return TITLE_TIERS[TITLE_TIERS.length - 1].name;
   }
 
+  function showRank(){
+    var el2 = el("result-percentile");
+    el2.textContent = "順位を集計中…";
+    fetch(dbUrl("/rankings"))
+      .then(function(res){ return res.ok ? res.json() : {}; })
+      .then(function(data){
+        var scores = data ? Object.keys(data).map(function(k){ return data[k] && data[k].score; }).filter(function(s){ return typeof s === "number"; }) : [];
+        var total = scores.length;
+        if (total === 0){
+          el2.textContent = "順位：1位（あなたが最初の挑戦者です）";
+          return;
+        }
+        var rank = 1 + scores.filter(function(s){ return s > state.totalScore; }).length;
+        var topPercent = Math.max(1, Math.ceil((rank / (total + 1)) * 100));
+        el2.textContent = "順位：" + rank + "位（上位" + topPercent + "%）";
+      }).catch(function(){
+        el2.textContent = "";
+      });
+  }
+
   function finishGame(){
     window.speechSynthesis && window.speechSynthesis.cancel();
     resultScoreNum.textContent = state.totalScore + "点";
     resultDetail.textContent =
-      "到達速度：" + state.speed.toFixed(2) + "倍速（第" + state.levelIndex + "問で終了）\n" +
+      state.speed.toFixed(2) + "倍速（第" + state.levelIndex + "問で終了）\n" +
       "クリア問題数：" + (state.levelIndex - 1) + "問";
-    el("result-title").textContent = "称号：" + titleFor(state.speed);
+    el("result-title").textContent = "称号：" + titleFor(state.speed, state.stage, false);
     showScreen("result");
+    showRank();
   }
 
   function gameCleared(){
@@ -1114,10 +1139,11 @@
     resultScoreNum.textContent = state.totalScore + "点";
     resultDetail.textContent =
       "クリアです、おめでとうございます！\n" +
-      "到達速度：" + state.speed.toFixed(2) + "倍速\n" +
+      state.speed.toFixed(2) + "倍速\n" +
       "クリア問題数：" + (state.levelIndex - 1) + "問";
-    el("result-title").textContent = "称号：" + titleFor(state.speed);
+    el("result-title").textContent = "称号：" + titleFor(state.speed, state.stage, true);
     showScreen("result");
+    showRank();
   }
 
   /* ===================== 端末ID（ブラウザごとのID） ===================== */
@@ -1215,12 +1241,14 @@
   var shareMode = false;
 
   function renderRanking(){
-    var sp = filterSpeaker.value, vi = filterVision.value, co = filterCountry.value;
-    var maxRows = shareMode ? 5 : 30;
+    var sp = filterSpeaker.value, vi = filterVision.value, co = filterCountry.value, re = filterResidence.value;
+    var maxRows = shareMode ? 10 : 30;
     var list = rankingCache.filter(function(e){
       if (sp && e.speaker !== sp) return false;
       if (vi && e.vision !== vi) return false;
       if (co && e.country !== co) return false;
+      if (re === "japan" && e.country !== "日本") return false;
+      if (re === "abroad" && e.country === "日本") return false;
       return true;
     }).slice(0, maxRows);
 
@@ -1256,8 +1284,17 @@
 
   /* ===================== イベント ===================== */
   btnStart.addEventListener("click", function(){
-    profile.name = nameInput.value.trim() || "なまえ";
-    profile.country = countryInput.value.trim() || "未回答";
+    var startError = el("start-error");
+    var name = nameInput.value.trim();
+    var country = countryInput.value.trim();
+    if (!name || !country){
+      startError.textContent = "なまえと出身国は必ず入力してください。";
+      startError.style.display = "block";
+      return;
+    }
+    startError.style.display = "none";
+    profile.name = name;
+    profile.country = country;
     state.speed = 0.5; state.levelIndex = 1; state.totalScore = 0;
     state.stage = "normal"; state.postCount = 0;
     refillPool();
@@ -1293,7 +1330,7 @@
   });
   btnBackToStart.addEventListener("click", function(){ showScreen("start"); });
 
-  [filterSpeaker, filterVision, filterCountry].forEach(function(s){ s.addEventListener("change", renderRanking); });
+  [filterSpeaker, filterVision, filterCountry, filterResidence].forEach(function(s){ s.addEventListener("change", renderRanking); });
 
   // ランキング専用URL（例：?ranking=1 または #ranking）でアクセスすると、
   // 最初からランキング画面（上位5位のみ）を表示する（SNS等への共有用）
