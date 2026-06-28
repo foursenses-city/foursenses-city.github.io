@@ -93,6 +93,11 @@
   .result-speed{text-align:center;margin:6px 0 18px;}
   .result-speed .num{font-size:46px;font-weight:800;color:var(--amber);}
   .result-speed .cap{font-size:13px;color:var(--ink-dim);margin-top:4px;line-height:1.6;white-space:pre-line;}
+  .title-badge{
+    display:inline-block; margin-top:14px; padding:8px 18px; border-radius:999px;
+    background:var(--amber-soft); border:1px solid var(--amber); color:var(--amber);
+    font-weight:800; font-size:15px; letter-spacing:.02em;
+  }
 
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
   .filters select{flex:1;min-width:120px;background:#11151f;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 8px;font-size:13px;font-family:inherit;}
@@ -189,6 +194,7 @@
     <div class="result-speed">
       <div class="num" id="result-score-num">0点</div>
       <div class="cap" id="result-detail"></div>
+      <div class="title-badge" id="result-title"></div>
     </div>
     <button class="primary" id="btn-save">この結果をランキングに登録する</button>
     <button class="ghost" id="btn-retry">もう一度挑戦する</button>
@@ -282,7 +288,8 @@
 
   // ---------- 主語：もの・出来事（4分類） ----------
   var SUBJECTS_THING = {
-    TIME_POINT:     [["2028年","にせんにじゅうはちねん"],["2029年","にせんにじゅうきゅうねん"],["2031年","にせんさんじゅういちねん"],["2033年","にせんさんじゅうさんねん"],["来年","らいねん"],["締め切り","しめきり"],["出発の時刻","しゅっぱつのじこく"]],
+    TIME_POINT_YEAR:     [["2028年","にせんにじゅうはちねん"],["2029年","にせんにじゅうきゅうねん"],["2031年","にせんさんじゅういちねん"],["2033年","にせんさんじゅうさんねん"],["来年","らいねん"]],
+    TIME_POINT_SCHEDULE: [["締め切り","しめきり"],["出発の時刻","しゅっぱつのじこく"]],
     TIME_RECURRING: [["桜の季節","さくらのきせつ"],["連休","れんきゅう"],["卒業式","そつぎょうしき"]],
     EVENT:     [["会議","かいぎ"],["祭り","まつり"],["選挙","せんきょ"],["イベント","いべんと"],["工事","こうじ"],["台風","たいふう"]],
     SITUATION: [["景気","けいき"],["物価","ぶっか"],["人口","じんこう"],["気温","きおん"],["会社の方針","かいしゃのほうしん"],["状況","じょうきょう"],["新しい法律","あたらしいほうりつ"],["新しい計画","あたらしいけいかく"],["天気","てんき"]],
@@ -335,7 +342,7 @@
     ["公園で遊んでいる","こうえんであそんでいる","HAPPY"],
     ["窓から外を見ている","まどからそとをみている","CALM"],
     ["駅まで走っている","えきまではしっている","FAST"],
-    ["海で泳いでいる","うみですいでいる","NEUTRAL"],
+    ["海で泳いでいる","うみでおよいでいる","NEUTRAL"],
     ["山に登っている","やまにのぼっている","NEUTRAL"],
     ["電車の中で眠っている","でんしゃのなかでねむっている","CALM"],
     ["雨の音を聞いている","あめのおとをきいている","CALM"],
@@ -421,7 +428,12 @@
 
   // ---------- 動詞：もの・出来事の分類専用 ----------
   var VERBS_THING = {
-    TIME_POINT: [
+    TIME_POINT_YEAR: [
+      ["近づいている","ちかづいている","GRADUAL"],
+      ["もう目の前に来ている","もうめのまえにきている","NONE"],
+      ["目前に迫っている","もくぜんにせまっている","GRADUAL"]
+    ],
+    TIME_POINT_SCHEDULE: [
       ["近づいている","ちかづいている","GRADUAL"],
       ["延期になった","えんきになった","PUNCTUAL"],
       ["前倒しになった","まえだおしになった","PUNCTUAL"],
@@ -596,11 +608,152 @@
   }
   var QUESTIONS = buildQuestionStock();
 
+  // ===== 10倍速到達後：分野を問わない88問の固定プール（読点なし基本・専門用語多め） =====
+  var POOL_88 = [
+    { text:"流動性のわなでは金融政策が効かない。", reading:"りゅうどうせいのわなではきんゆうせいさくがきかない。" },
+    { text:"限界代替率は二財の主観的交換比率。", reading:"げんかいだいたいりつはにざいのしゅかんてきこうかんひりつ。" },
+    { text:"モラルハザードは情報の非対称性で起きる。", reading:"もらるはざーどはじょうほうのひたいしょうせいでおきる。" },
+    { text:"外部不経済を内部化するためピグー税を課す。", reading:"がいぶふけいざいをないぶかするためぴぐーぜいをかす。" },
+    { text:"固定相場制では金融政策の効力が失われる。", reading:"こていそうばせいではきんゆうせいさくのこうりょくがうしなわれる。" },
+    { text:"ギフェン財は価格上昇で需要量が増加する。", reading:"ぎふぇんざいはかかくじょうしょうでじゅようりょうがぞうかする。" },
+    { text:"ナッシュ均衡では全員が戦略を変更しない。", reading:"なっしゅきんこうではぜんいんがせんりゃくをへんこうしない。" },
+    { text:"比較優位に基づき国際分業が展開される。", reading:"ひかくゆういにもとづきこくさいぶんぎょうがてんかいされる。" },
+    { text:"フィリップス曲線は失業率と物価の関係。", reading:"ふぃりっぷすきょくせんはしつぎょうりつとぶっかのかんけい。" },
+    { text:"公共財の非排除性はフリーライダーを招く。", reading:"こうきょうざいのひはいじょせいはふりーらいだーをまねく。" },
+    { text:"虚血再灌流障害は活性酸素が細胞を壊す。", reading:"きょけつさいかんりゅうしょうがいはかっせいさんそがさいぼうをこわす。" },
+    { text:"播種性血管内凝固で微小血栓が多発する。", reading:"はしゅせいけっかんないぎょうこでびしょうけっせんがたはつする。" },
+    { text:"特発性肺線維症は肺胞上皮の損傷が本態。", reading:"とくはつせいはいせんいしょうははいほうじょうひのそんしょうがほんたい。" },
+    { text:"補体古典経路が膜襲撃複合体を形成する。", reading:"ほたいこてんけいろがまくしゅうげきふくごうたいをけいせいする。" },
+    { text:"チロシンキナーゼの変異が腫瘍化を招く。", reading:"ちろしんきなーぜのへんいがしゅようかをまねく。" },
+    { text:"劇症型溶血性レンサ球菌は壊死性筋膜炎。", reading:"げきしょうがたようけつせいれんさきゅうきんはえしせいきんまくえん。" },
+    { text:"偽膜性大腸炎はクロストリジウムが原因。", reading:"ぎまくせいだいちょうえんはくろすとりじうむがげんいん。" },
+    { text:"一過性脳虚血発作は脳梗塞の前駆症状。", reading:"いっかせいのうきょけつほっさはのうこうそくのぜんくしょうじょう。" },
+    { text:"拡張型心筋症は心室の収縮能低下を来す。", reading:"かくちょうがたしんきんしょうはしんしつのしゅうしゅくのうていかをきたす。" },
+    { text:"好酸球性副鼻腔炎は多発性ポリープを伴う。", reading:"こうさんきゅうせいふくびこうえんはたはつせいぽりーぷをともなう。" },
+    { text:"不斉炭素は四つの異なる基と結合する。", reading:"ふせいたんそはよっつのことなるきとけつごうする。" },
+    { text:"触媒は反応のギブズ自由エネルギーを削る。", reading:"しょくばいははんのうのぎぶずじゆうえねるぎーをけずる。" },
+    { text:"ｄ軌道は配位子場により分裂を起こす。", reading:"でぃーきどうははいいこじょうによりぶんれつをおこす。" },
+    { text:"共役系が伸長すると吸収波長が長くなる。", reading:"きょうやくけいがしんちょうするときゅうしゅうはちょうがながくなる。" },
+    { text:"求核置換反応で立体配置が反転する。", reading:"きゅうかくちかんはんのうでりったいはいちがはんてんする。" },
+    { text:"緩衝液は少量の酸や塩基の添加で動かない。", reading:"かんしょうえきはしょうりょうのさんやえんきのてんかでうごかない。" },
+    { text:"マルコフニコフ則で主生成物が決定する。", reading:"まるこふにこふそくでしゅせいせいぶつがけっていする。" },
+    { text:"電気陰性度の差が分子の極性を左右する。", reading:"でんきいんせいどのさがぶんしのきょくせいをさゆうする。" },
+    { text:"共鳴安定化によりベンゼン環は強固となる。", reading:"きょうめいあんていかによりべんぜんかんはきょうことなる。" },
+    { text:"ヘスの法則は総熱量保存の法則である。", reading:"へすのほうそくはそうねつりょうほぞんのほうそくである。" },
+    { text:"徳川慶喜は大政奉還で政権を朝廷へ返した。", reading:"とくがわよしのぶはたいせいほうかんでせいけんをちょうていへかえした。" },
+    { text:"墾田永年私財法で初期荘園が形成された。", reading:"こんでんえいねんしざいほうでしょきしょうえんがけいせいされた。" },
+    { text:"官渡の戦いで曹操は袁紹の大軍を破った。", reading:"かんとのたたかいでそうそうはえんしょうのたいぐんをやぶった。" },
+    { text:"聖職叙任権を巡るカノッサの屈辱が起きた。", reading:"せいしょくじょにんけんをめぐるかのっさのくつじょくがおきた。" },
+    { text:"ミッドウェー海戦の敗北で攻守が暗転した。", reading:"みっどうぇーかいせんのはいぼくでこうしゅがあんてんした。" },
+    { text:"テルミドールのクーデターでロベスピエール失脚。", reading:"てるみどーるのくーでたーでろべすぴえーるしっきゃく。" },
+    { text:"ウエストファリア条約で主権国家体制が確立。", reading:"うえすとふぁりあじょうやくでしゅけんこっかたいせいがかくりつ。" },
+    { text:"禹王の九鼎は中原の正統な帝権を象徴する。", reading:"うおうのきゅうていはちゅうげんのせいとうなていけんをしょうちょうする。" },
+    { text:"承久の乱を経て幕府の優位が決定づけられた。", reading:"じょうきゅうのらんをへてばくふのゆういがけっていづけられた。" },
+    { text:"クリュプテイアはスパルタの秘密警察制度。", reading:"くりゅぷていあはすぱるたのひみつけいさつせいど。" },
+    { text:"現象学的還元で純粋意識を抽出する。", reading:"げんしょうがくてきかんげんでじゅんすいいしきをちゅうしゅつする。" },
+    { text:"現存在の時間は死へと向かう存在である。", reading:"げんそんざいのじかんはしへとむかうそんざいである。" },
+    { text:"言語ゲームは言葉の使用規則を意味する。", reading:"げんごげーむはことばのしようきそくをいみする。" },
+    { text:"先験的統覚が客観的な認識を可能にする。", reading:"せんけんてきとうかくがきゃっかんてきなにんしきをかのうにする。" },
+    { text:"差異そのものの生成変化を肯定する思想。", reading:"さいそのもののせいせいへんかをこうていするしそう。" },
+    { text:"止揚によって矛盾は高次元へ統合される。", reading:"しようによってむじゅんはこうじげんへとうごうされる。" },
+    { text:"アパテイアは情念に惑わされない不動心。", reading:"あぱていあはじょうねんにまどわされないふどうしん。" },
+    { text:"独我論は自己の意識のみの実在を認める。", reading:"どくがろんはじこのいしきのみのじつざいをみとめる。" },
+    { text:"パースペクティヴ主義は絶対的真理を否定。", reading:"ぱーすぺくてぃゔしゅぎはぜったいてきしんりをひてい。" },
+    { text:"実践理性批判は自律的な道徳律を提示する。", reading:"じっせんりせいひはんはじりつてきなどうとくりつをていじする。" },
+    { text:"シニフィアンは言語の音韻側面を指す。", reading:"しにふぃあんはげんごのおんいんそくめんをさす。" },
+    { text:"普遍文法は全人類に共通する言語能力。", reading:"ふへんぶんぽうはぜんじんるいにきょうつうするげんごのうりょく。" },
+    { text:"相補的分布は音素の置換不可能な関係。", reading:"そうほてきぶんぷはおんそのちかんふかのうなかんけい。" },
+    { text:"発話内行為は言葉が持つ実質的な効果。", reading:"はつわないこういはことばがもつじっしつてきなこうか。" },
+    { text:"統語論は語から文を構成する規則の学。", reading:"とうごろんはかたりからぶんをこうせいするきそくのがく。" },
+    { text:"最小対立体によって音素が弁別される。", reading:"さいしょうたいりつたいによっておんそがべんべつされる。" },
+    { text:"グリムの法則は印欧祖語の子音推移を示す。", reading:"ぐりむのほうそくはいんおうそごのしいんすいいをしめす。" },
+    { text:"協調の原理は円滑な談話の基盤となる。", reading:"きょうちょうのげんりはえんかつなだんわのきばんとなる。" },
+    { text:"統辞構造における右枝分かれと左枝分かれ。", reading:"とうじこうぞうにおけるみぎえだわかれとひだりえだわかれ。" },
+    { text:"能格言語は自動詞の主語と他動詞の目的語を同格とする。", reading:"のうかくげんごはじどうしのしゅごとたどうしのもくてきごをどうかくとする。" },
+    { text:"抽象芸術は具象の再現を拒絶する。", reading:"ちゅうしょうげいじゅつはぐしょうのさいげんをきょぜつする。" },
+    { text:"印象主義は網膜に映る光の変化を捉える。", reading:"いんしょうしゅぎはもうまくにうつるひかりのへんかをとらえる。" },
+    { text:"レディメイドは手仕事から選択への転換。", reading:"れでぃめいどはてしごとからせんたくへのてんかん。" },
+    { text:"キュビスムは多角的視点から対象を解体。", reading:"きゅびすむはたかくてきしてんからたいしょうをかいたい。" },
+    { text:"自動記述により無意識の領域を写実する。", reading:"じどうきじゅつによりむいしきのりょういきをしゃじつする。" },
+    { text:"分割主義は純色の並置で視覚的混色を狙う。", reading:"ぶんかつしゅぎはじゅんしょくのへいちでしかくてきこんしょくをねらう。" },
+    { text:"複製技術は芸術のアウラを消失させる。", reading:"ふくせいぎじゅつはげいじゅつのあうらをしょうしつさせる。" },
+    { text:"フルクサスは日常と行為の融合を目指した。", reading:"ふるくさすはにちじょうとこういのゆうごうをめざした。" },
+    { text:"グリーンバーグは絵画の平坦性を支持する。", reading:"ぐりーんばーぐはかいがのへいたんせいをしじする。" },
+    { text:"イコノロジーは美術の隠された意味を解読。", reading:"いこのろじーはびじゅつのかくされたいみをかいどく。" },
+    { text:"二重スリット実験が波と粒子の二面性を示す。", reading:"にじゅうすりっとじっけんがなみとりゅうしのにめんせいをしめす。" },
+    { text:"量子もつれは非局所的な相関を証明する。", reading:"りょうしもつれはひきょくしょてきなそうかんをしょうめいする。" },
+    { text:"シュレーディンガーの猫は重ね合わせの状態。", reading:"しゅれーでぃんがーのねこはかさねあわせのじょうたい。" },
+    { text:"赤方偏移は宇宙が膨張している証拠である。", reading:"せきほうへんいはうちゅうがぼうちょうしているしょうこである。" },
+    { text:"不確定性原理により、位置と運動量は決まらない。", reading:"ふかくていせいげんりにより、いちとうんどうりょうはきまらない。" },
+    { text:"光電効果は光が粒子である性質を証明した。", reading:"こうでんこうかはひかりがりゅうしであるせいしつをしょうめいした。" },
+    { text:"事象の地平線からは光さえも脱出できない。", reading:"じしょうのちへいせんからはひかりさえもだっしゅつできない。" },
+    { text:"エントロピー増大の法則は不可逆性を表す。", reading:"えんとろぴーぞうだいのほうそくはふかぎゃくせいをあらわす。" },
+    { text:"超弦理論は万物の理論の有力候補である。", reading:"ちょうげんりろんはばんぶつのりろんのゆうりょくこうほである。" },
+    { text:"ニュートリノ振動は素粒子が質量を持つ証拠。", reading:"にゅーとりのしんどうはそりゅうしがしつりょうをもつしょうこ。" },
+    { text:"源氏物語は宇治十帖に至る因果を描く。", reading:"げんじものがたりはうじじゅうじょうにいたるいんがをえがく。" },
+    { text:"枕草子は類聚的章段で当時の後宮を記録。", reading:"まくらのそうしはるいじゅうてきしょうだんでとうじのこうきゅうをきろく。" },
+    { text:"奥の細道は歌枕の虚実を調和させた紀行。", reading:"おくのほそみちはうたまくらのきょじつをちょうわさせたきこう。" },
+    { text:"平家物語は一門の盛衰を描いた軍記。", reading:"へいけものがたりはいちもんのせいすいをえがいたぐんき。" },
+    { text:"徒然草は世俗の批評と美意識を綴った随筆。", reading:"つれづれぐさはせぞくのひひょうとびいしきをつづったずいひつ。" },
+    { text:"方丈記は天変地異の記録から無常観を導く。", reading:"ほうじょうきはてんぺんちいのきろくからむじょうかんをみちびく。" },
+    { text:"伊勢物語は在原業平を彷彿させる歌物語。", reading:"いせものがたりはありわらのなりひらをほうふつさせるうたものがたり。" },
+    { text:"土佐日記は女性に仮託した紀貫之の旅日記。", reading:"とさにっきはじょせいにかたくしたきのつらゆきのたびにっき。" },
+  ];
+
+  // ===== 最終問題：玉音放送の分割（漢字は表示用、読みのみを判定に使用） =====
+  var GYOKUON_SEGMENTS = [
+    { text:"朕深く世界の大勢と帝国の現状とに鑑み、", reading:"ちんふかくせかいのたいせいとていこくのげんじょうとにかんがみ、" },
+    { text:"非常の措置を以て時局を収拾せんと欲し、", reading:"ひじょうのそちをもってじきょくをしゅうしゅうせんとほっし、" },
+    { text:"茲に忠良なる爾臣民に告ぐ。", reading:"ここにちゅうりょうなるなんじしんみんにつぐ。" },
+    { text:"朕は帝国政府をして米英支蘇四国に対し、", reading:"ちんはていこくせいふをしてべいえいしそしこくにたいし、" },
+    { text:"其の共同宣言を受諾する旨通告せしめたり。", reading:"そのきょうどうせんげんをじゅだくするむねつうこくせしめたり。" },
+    { text:"抑々帝国臣民の康寧を図り、", reading:"そもそもていこくしんみんのこうねいをはかり、" },
+    { text:"万邦共栄の楽を偕にするは、", reading:"ばんぽうきょうえいのらくをともにするは、" },
+    { text:"皇祖皇宗の遺範にして、朕の拳々措かざる所、", reading:"こうそこうそうのいはんにして、ちんのけんけんおかざるところ、" },
+    { text:"曩に米英二国に宣戦せる所以も、", reading:"さきにべいえいにこくにせんせんせるゆえんも、" },
+    { text:"亦実に帝国の自存と東亜の安定とを庶幾するに出で、", reading:"またじつにていこくのじそんととうあのあんていとをしょきするにいで、" },
+    { text:"他国の主権を排し領土を侵すが如きは、固より朕が志にあらず。", reading:"たこくのしゅけんをはいしりょうどをおかすがごときは、もとよりちんがこころざしにあらず。" },
+    { text:"然るに交戦已に四歳を経、朕が陸海将兵の勇戦、", reading:"しかるにこうせんすでにしさいをへ、ちんがりくかいしょうへいのゆうせん、" },
+    { text:"朕が百僚有司の励精、朕が一億衆庶の奉公、", reading:"ちんのひゃくりょうゆうしのれいせい、ちんのいちおくしゅうしょのほうこう、" },
+    { text:"各々最善を尽くせるにも拘らず、戦局必ずしも好転せず、", reading:"おのおのさいぜんをつくせるにもかかわらず、せんきょくかならずしもこうてんせず、" },
+    { text:"世界の大勢亦我に利あらず。", reading:"せかいのたいせいまたわれにりあらず。" },
+    { text:"且つ敵は新たに残虐なる原子爆弾を使用して、", reading:"かつてきはあらたにざんぎゃくなるげんしばくだんをしようして、" },
+    { text:"頻に無辜を殺傷し、惨害の及ぶ所、真に測るべからざるに至る。", reading:"しきりにむこをさっしょうし、さんがいのおよぶところ、しんにはかるべからざるにいたる。" },
+    { text:"而も尚交戦を継続せんか、", reading:"しかもなおこうせんをけいぞくせんか、" },
+    { text:"終に我が民族の滅亡を招来するのみならず、", reading:"ついにわがみんぞくのめつぼうをしょうらいするのみならず、" },
+    { text:"延いて人類の文明をも破却すべし。", reading:"ひいてはじんるいのぶんめいをもはきゃくすべし。" },
+    { text:"如斯くんば、朕何を以てか億兆の赤子を保し、", reading:"かくのごとくんば、ちんなにをもってかおくちょうのせきしをほし、" },
+    { text:"皇祖皇宗の神霊に謝せんや。是れ朕が帝国政府をして、", reading:"こうそこうそうのしんれいにしゃせんや。これちんがていこくせいふをして、" },
+    { text:"共同宣言に応ぜしむるに至れる所以なり。", reading:"きょうどうせんげんにおうぜしむるにいたれるゆえんなり。" },
+    { text:"朕は帝国と共に終始東亜の解放に協力せる諸盟邦に対し、", reading:"ちんはていこくとともにしゅうしとうあのかいほうにきょうりょくせるしょめいほうにたいし、" },
+    { text:"遺憾の意を表せざるを得ず。", reading:"いかんのいをひょうせざるをえず。" },
+    { text:"帝国臣民にして戦陣に死し、職域に殉じ、", reading:"ていこくしんみんにしてせんじんにしし、しょくいきにじゅんじ、" },
+    { text:"非命に斃れたる者、及其の遺族に想を致せば、五内為に裂く。", reading:"ひめいにたおれたるもの、およびそのいぞくにおもいをいたせば、ごないためにさく。" },
+    { text:"且戦傷を負ひ、災禍を蒙り、", reading:"かつせんしょうをおい、さいかをこうむり、" },
+    { text:"家業を失ひたる者の厚生に至りては、", reading:"かぎょうをうしないたるもののこうせいにいたりては、" },
+    { text:"朕の深く軫念する所なり。", reading:"ちんのふかくしんねんするところなり。" },
+    { text:"惟ふに今後帝国の受くべき苦難は、", reading:"おもうにこんごていこくのうくべきくなんは、" },
+    { text:"固より尋常にあらず、爾臣民の衷情も、朕善く之を知る。", reading:"もとよりじんじょうにあらず、なんじしんみんのちゅうじょうも、ちんよくこれをしる。" },
+    { text:"然れども朕は時運の趨く所、堪へ難きを堪へ、", reading:"しかれどもちんはじうんのおもむくところ、たえがたきをたえ、" },
+    { text:"忍び難きを忍び、以て万世の為に太平を開かんと欲す。", reading:"しのびがたきをしのび、もってばんせいのためにたいへいをひらかんとほっす。" },
+    { text:"朕は茲に国体を護持し得て、", reading:"ちんはここにこくたいをごじしえて、" },
+    { text:"忠良なる爾臣民の赤忱に信託し、常に爾臣民と共に在り。", reading:"ちゅうりょうなるなんじしんみんのせきしんにしんたくし、つねになんじしんみんとともにあり。" },
+    { text:"若し情の激する所、濫に事端を滋くし、", reading:"もしじょうのげきするところ、みだりにじたんをしげくし、" },
+    { text:"或は同胞排擠互に時局を乱り、為に大道を誤り、", reading:"あるいはどうほうはいせいたがいにじきょくをみだり、ためにたいどうをあやまり、" },
+    { text:"信義を世界に失ふが如きは、朕最も之を戒む。", reading:"しんぎをせかいにうしなうがごときは、ちんもっともこれをいましむ。" },
+    { text:"宜く挙国一家子孫相伝へ、確く神州の不滅を信じ、", reading:"よろしくきょこくいっかしそんあいつたえ、かたくしんしゅうのふめつをしんじ、" },
+    { text:"任重くして道遠きを念ひ、総力を将来の建設に傾け、", reading:"にんおもくしてみちとおきをおもい、そうりょくをしょうらいのけんせつにかたむけ、" },
+    { text:"道義を篤くし志操を鞏くし、誓て国体の精華を発揚し、", reading:"どうぎをあつくししそうをかたくし、ちかってこくたいのせいかをはつようし、" },
+    { text:"世界の進運に後れざらんことを期すべし。", reading:"せかいのしんうんにおくれざらんことをきすべし。" },
+    { text:"爾臣民其れ克く朕が意を体せよ。", reading:"なんじしんみんそれよくちんがいをたいせよ。" },
+  ];
+
   /* ===================== 状態 ===================== */
   var profile = { name:"なまえ", speaker:"native", country:"", vision:"sighted" };
   var state = {
     speed:0.5, levelIndex:1, sentenceIdx:0, sentenceSet:[], triesInSentence:0, totalTries:0,
-    totalScore:0, pool:[], poolIdx:0, current:null, locked:false, voice:null
+    totalScore:0, pool:[], poolIdx:0, current:null, locked:false, voice:null,
+    stage:"normal", postPool:[], postPoolIdx:0, postCount:0
   };
 
   /* ===================== 要素 ===================== */
@@ -693,14 +846,41 @@
       .replace(/[。、,.!?！？\s　・「」『』]/g, "")
       .trim();
   }
-  function checkAnswer(input, q){
+  // 高速再生だと聞き分けにくい助詞の組み合わせ。どちらで聴き取っても正解にする。
+  var PARTICLE_AMBIGUITY_PAIRS = [
+    ["うみで","うみを"]
+  ];
+  var PARTICLE_SET = ["は","が","に","を","で"];
+  // 文字数が同じで、違う箇所がすべて「は・が・に・を」同士の置き換えだけなら許容する（通常フェーズのみ）
+  function isLenientParticleMatch(inputNorm, correctNorm){
+    if (inputNorm.length !== correctNorm.length) return false;
+    var sawDiff = false;
+    for (var i = 0; i < inputNorm.length; i++){
+      if (inputNorm[i] !== correctNorm[i]){
+        if (PARTICLE_SET.indexOf(inputNorm[i]) === -1 || PARTICLE_SET.indexOf(correctNorm[i]) === -1) return false;
+        sawDiff = true;
+      }
+    }
+    return sawDiff;
+  }
+  // 戻り値：{ ok: 正解かどうか, lenient: 助詞ゆらぎでの許容（5%減点対象）かどうか }
+  function checkAnswer(input, q, allowParticleLeniency){
     var n = normalize(input);
-    if (!n) return false;
-    return n === normalize(q.reading);
+    if (!n) return { ok:false, lenient:false };
+    var correctReading = normalize(q.reading);
+    if (n === correctReading) return { ok:true, lenient:false };
+    for (var i = 0; i < PARTICLE_AMBIGUITY_PAIRS.length; i++){
+      var a = PARTICLE_AMBIGUITY_PAIRS[i][0], b = PARTICLE_AMBIGUITY_PAIRS[i][1];
+      if (q.reading.indexOf(a) !== -1 && n === normalize(q.reading.split(a).join(b))) return { ok:true, lenient:false };
+      if (q.reading.indexOf(b) !== -1 && n === normalize(q.reading.split(b).join(a))) return { ok:true, lenient:false };
+    }
+    if (allowParticleLeniency && isLenientParticleMatch(n, correctReading)) return { ok:true, lenient:true };
+    return { ok:false, lenient:false };
   }
 
   /* ===================== 出題ロジック ===================== */
   function refillPool(){ state.pool = shuffle(QUESTIONS.slice()); state.poolIdx = 0; }
+  function refillPostPool(){ state.postPool = shuffle(POOL_88.slice()); state.postPoolIdx = 0; }
   var RECENT_HISTORY_SIZE = 20;
   var recentHistory = []; // 直近に出題した文章（text）を記録し、重複を避ける
   function rememberHistory(q){
@@ -708,6 +888,12 @@
     if (recentHistory.length > RECENT_HISTORY_SIZE) recentHistory.shift();
   }
   function nextQuestion(){
+    if (state.stage === "post"){
+      // 10倍速到達後：分野を問わない88問の固定プールから出題（読点なし・専門用語多め・副詞ロジックは使わない）
+      if (state.postPoolIdx >= state.postPool.length) refillPostPool();
+      var pq = state.postPool[state.postPoolIdx]; state.postPoolIdx++;
+      return pq;
+    }
     var q, attempts = 0;
     do {
       if (state.poolIdx >= state.pool.length) refillPool();
@@ -716,6 +902,10 @@
     } while (recentHistory.indexOf(q.text) !== -1 && attempts < 200);
     rememberHistory(q);
     return applyPoliteIfPossible(q);
+  }
+  // 最終問題用：玉音放送の分割からランダムに3つ選ぶ（重複なし）
+  function pickFinalSentenceSet(){
+    return sampleN(GYOKUON_SEGMENTS, 3);
   }
   // 「〜ている。」「〜でいる。」「〜ある。」で終わる文だけ、安全に「ですます」調へ変換できる。
   // 「〜た。」終わりは動詞ごとに活用が異なるため、誤った日本語を生まないようここでは対象外（普通体のまま）。
@@ -743,7 +933,11 @@
   function startQuestion(){
     state.totalTries = 0;
     state.sentenceIdx = 0;
-    state.sentenceSet = [ nextQuestion(), nextQuestion(), nextQuestion() ];
+    if (state.stage === "final"){
+      state.sentenceSet = pickFinalSentenceSet();
+    } else {
+      state.sentenceSet = [ nextQuestion(), nextQuestion(), nextQuestion() ];
+    }
     loadSentence();
   }
 
@@ -757,7 +951,8 @@
     answerInput.value = ""; answerInput.disabled = false;
     speedValueEl.textContent = state.speed.toFixed(2);
     var base = baseScoreFor(state.levelIndex);
-    levelLabelEl.textContent = "第" + state.levelIndex + "問（満点" + base + "点）／例文" + (state.sentenceIdx+1) + "/3";
+    var stageLabel = state.stage === "final" ? "最終問題" : "第" + state.levelIndex + "問";
+    levelLabelEl.textContent = stageLabel + "（満点" + base + "点）／例文" + (state.sentenceIdx+1) + "/3";
     totalScoreEl.textContent = state.totalScore;
     renderStrikes();
     replayNote.textContent = "この例文を聴いた回数：0回";
@@ -814,21 +1009,49 @@
 
   function submitAnswer(){
     if (btnSubmit.disabled || !state.current) return;
-    var correct = checkAnswer(answerInput.value, state.current);
-    if (correct){
+    var allowLeniency = (state.stage === "normal");
+    var result = checkAnswer(answerInput.value, state.current, allowLeniency);
+    if (result.ok){
       state.locked = true;
       answerInput.disabled = true; btnSubmit.disabled = true; btnPlay.disabled = true;
       var base = baseScoreFor(state.levelIndex);
       var multiplier = Math.pow(0.9, state.totalTries - 1); // 1回目=100%、聴くたびに10%ずつ減少
       var gained = Math.max(1, Math.round(base * multiplier));
+      if (result.lenient) gained = Math.max(1, Math.round(gained * 0.95)); // 助詞ゆらぎは5%減点
       state.totalScore += gained;
       playCorrectChime();
-      feedbackEl.textContent = "リンゴーン、正解です！ +" + gained + "点（合計" + state.totalScore + "点）";
+      var particleNote = result.lenient ? "（助詞のゆらぎを許容／5%減点）" : "";
+      feedbackEl.textContent = "リンゴーン、正解です！" + particleNote + " +" + gained + "点（合計" + state.totalScore + "点）";
       feedbackEl.className = "feedback correct";
+
+      if (state.stage === "final"){
+        setTimeout(function(){ gameCleared(); }, 1600);
+        return;
+      }
+
       setTimeout(function(){
-        state.speed = Math.round((state.speed + 0.25) * 100) / 100;
-        state.levelIndex++;
-        startQuestion();
+        if (state.stage === "normal"){
+          var wasAtCap = state.speed >= 10.00;
+          state.speed = Math.min(Math.round((state.speed + 0.25) * 100) / 100, 10.00);
+          state.levelIndex++;
+          if (wasAtCap){
+            state.stage = "post";
+            state.postCount = 0;
+            refillPostPool();
+          }
+          startQuestion();
+        } else if (state.stage === "post"){
+          state.postCount++;
+          state.levelIndex++;
+          if (state.postCount >= 10){
+            state.stage = "final";
+            feedbackEl.textContent = "最終問題です。";
+            feedbackEl.className = "feedback";
+            setTimeout(function(){ startQuestion(); }, 1400);
+          } else {
+            startQuestion();
+          }
+        }
       }, 1600);
     } else {
       playWrongBuzz();
@@ -858,12 +1081,42 @@
     }
   }
 
+  // 到達倍速に応じた称号（ふざけ気味のネーミング）
+  var TITLE_TIERS = [
+    { max: 1.00, name: "新米リスナー" },
+    { max: 2.00, name: "ふつうの耳" },
+    { max: 3.50, name: "鋭耳（えいじ）" },
+    { max: 5.50, name: "速聴見習い" },
+    { max: 8.00, name: "速聴の達人" },
+    { max: 12.00, name: "人間離れした耳" },
+    { max: 18.00, name: "視覚障害者レベルの耳" },
+    { max: Infinity, name: "速聴の王" }
+  ];
+  function titleFor(speed){
+    for (var i = 0; i < TITLE_TIERS.length; i++){
+      if (speed <= TITLE_TIERS[i].max) return TITLE_TIERS[i].name;
+    }
+    return TITLE_TIERS[TITLE_TIERS.length - 1].name;
+  }
+
   function finishGame(){
     window.speechSynthesis && window.speechSynthesis.cancel();
     resultScoreNum.textContent = state.totalScore + "点";
     resultDetail.textContent =
       "到達速度：" + state.speed.toFixed(2) + "倍速（第" + state.levelIndex + "問で終了）\n" +
       "クリア問題数：" + (state.levelIndex - 1) + "問";
+    el("result-title").textContent = "称号：" + titleFor(state.speed);
+    showScreen("result");
+  }
+
+  function gameCleared(){
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    resultScoreNum.textContent = state.totalScore + "点";
+    resultDetail.textContent =
+      "クリアです、おめでとうございます！\n" +
+      "到達速度：" + state.speed.toFixed(2) + "倍速\n" +
+      "クリア問題数：" + (state.levelIndex - 1) + "問";
+    el("result-title").textContent = "称号：" + titleFor(state.speed);
     showScreen("result");
   }
 
@@ -1006,6 +1259,7 @@
     profile.name = nameInput.value.trim() || "なまえ";
     profile.country = countryInput.value.trim() || "未回答";
     state.speed = 0.5; state.levelIndex = 1; state.totalScore = 0;
+    state.stage = "normal"; state.postCount = 0;
     refillPool();
     showScreen("game");
     startQuestion();
