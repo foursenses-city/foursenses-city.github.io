@@ -756,7 +756,7 @@
   var state = {
     speed:0.5, levelIndex:1, sentenceIdx:0, sentenceSet:[], triesInSentence:0, totalTries:0,
     totalScore:0, pool:[], poolIdx:0, current:null, locked:false, voice:null,
-    stage:"normal", postPool:[], postPoolIdx:0, postCount:0
+    stage:"normal", postPool:[], postPoolIdx:0, postCount:0, finalCount:0, finalPool:[], finalPoolIdx:0
   };
 
   /* ===================== 要素 ===================== */
@@ -908,8 +908,15 @@
     return applyPoliteIfPossible(q);
   }
   // 最終問題用：玉音放送の分割からランダムに3つ選ぶ（重複なし）
+  function refillFinalPool(){ state.finalPool = shuffle(GYOKUON_SEGMENTS.slice()); state.finalPoolIdx = 0; }
   function pickFinalSentenceSet(){
-    return sampleN(GYOKUON_SEGMENTS, 3);
+    var picks = [];
+    for (var i = 0; i < 3; i++){
+      if (state.finalPoolIdx >= state.finalPool.length) refillFinalPool();
+      picks.push(state.finalPool[state.finalPoolIdx]);
+      state.finalPoolIdx++;
+    }
+    return picks;
   }
   // 「〜ている。」「〜でいる。」「〜ある。」で終わる文だけ、安全に「ですます」調へ変換できる。
   // 「〜た。」終わりは動詞ごとに活用が異なるため、誤った日本語を生まないようここでは対象外（普通体のまま）。
@@ -955,7 +962,7 @@
     answerInput.value = ""; answerInput.disabled = false;
     speedValueEl.textContent = state.speed.toFixed(2);
     var base = baseScoreFor(state.levelIndex);
-    var stageLabel = state.stage === "final" ? "最終問題" : "第" + state.levelIndex + "問";
+    var stageLabel = state.stage === "final" ? "最終問題 " + (state.finalCount+1) + "/10" : "第" + state.levelIndex + "問";
     levelLabelEl.textContent = stageLabel + "（満点" + base + "点）／例文" + (state.sentenceIdx+1) + "/3";
     totalScoreEl.textContent = state.totalScore;
     renderStrikes();
@@ -1028,11 +1035,6 @@
       feedbackEl.textContent = "リンゴーン、正解です！" + particleNote + " +" + gained + "点（合計" + state.totalScore + "点）";
       feedbackEl.className = "feedback correct";
 
-      if (state.stage === "final"){
-        setTimeout(function(){ gameCleared(); }, 1600);
-        return;
-      }
-
       setTimeout(function(){
         if (state.stage === "normal"){
           var wasAtCap = state.speed >= 10.00;
@@ -1049,9 +1051,19 @@
           state.levelIndex++;
           if (state.postCount >= 10){
             state.stage = "final";
+            state.finalCount = 0;
+            refillFinalPool();
             feedbackEl.textContent = "最終問題です。";
             feedbackEl.className = "feedback";
             setTimeout(function(){ startQuestion(); }, 1400);
+          } else {
+            startQuestion();
+          }
+        } else if (state.stage === "final"){
+          state.finalCount++;
+          state.levelIndex++;
+          if (state.finalCount >= 10){
+            gameCleared();
           } else {
             startQuestion();
           }
